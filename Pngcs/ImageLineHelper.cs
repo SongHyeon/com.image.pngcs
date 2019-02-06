@@ -154,6 +154,19 @@ namespace Pngcs
             }
         }
 
+        public static void SetPixel ( ImageLine line , int col , int value )
+        {
+            if( line.channels!=1 ) { throw new System.Exception( "this method is for 1 channel images only" ); }
+            if( line.IsInt() )
+            {
+                line.Scanline[ col ] = value;
+            }
+            else
+            {
+                line.ScanlineB[ col ] = (byte)value;
+            }
+        }
+
         public static void SetPixel ( ImageLine line , int col , int r , int g , int b )
         {
             SetPixel( line , col , r , g , b , line.maxSampleVal );
