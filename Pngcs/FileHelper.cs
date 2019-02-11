@@ -16,7 +16,7 @@ namespace Pngcs
             Stream isx = null;
             if( file==null || File.Exists(file)==false )
                 throw new PngjInputException( $"Cannot open file for reading ({ file })" );
-            isx = new FileStream( file , FileMode.Open );
+            isx = new FileStream( file , FileMode.Open , FileAccess.Read , FileShare.Read );
             return isx;
         }
 
@@ -25,7 +25,7 @@ namespace Pngcs
             Stream osx = null;
             if( File.Exists(file) && !allowOverwrite )
                 throw new PngjOutputException( $"File already exists ({ file }) and overwrite=false" );
-            osx = new FileStream( file , FileMode.Create );
+            osx = new FileStream( file , FileMode.Create , FileAccess.Write , FileShare.None );
             return osx;
         }
 
