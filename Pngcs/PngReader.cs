@@ -31,6 +31,7 @@ namespace Pngcs
     ///
     /// </remarks>
     public class PngReader
+        : System.IDisposable
     {
         /// <summary>
         /// Basic image info, inmutable
@@ -803,6 +804,11 @@ namespace Pngcs
         internal long GetCrctestVal () => crctest.GetValue();
 
         internal void InitCrctest () => this.crctest = new Adler32();
+
+        void System.IDisposable.Dispose ()
+        {
+            this.End();
+        }
 
     }
 }
