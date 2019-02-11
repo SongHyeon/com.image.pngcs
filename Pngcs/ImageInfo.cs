@@ -1,12 +1,7 @@
-namespace Pngcs {
+using System;
 
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.IO;
-    using System.Runtime.CompilerServices;
-
+namespace Pngcs
+{
     /// <summary>
     /// Simple immutable wrapper for basic image info
     /// </summary>
@@ -15,8 +10,9 @@ namespace Pngcs {
     /// The constructor requires an 'ortogonal' subset
     /// http://www.w3.org/TR/PNG/#11IHDR
     /// </remarks>
-    public class ImageInfo {
-        private const int MAX_COLS_ROWS_VAL = 400000; // very big value, but no so ridiculous as 2^32
+    public class ImageInfo
+    {
+        const int MAX_COLS_ROWS_VAL = 400000; // very big value, but no so ridiculous as 2^32
 
         /// <summary>
         /// Image width, in pixels
@@ -102,8 +98,10 @@ namespace Pngcs {
         /// <summary>
         /// Simple constructor: only for RGB/RGBA
         /// </summary>
-        public ImageInfo(int cols, int rows, int bitdepth, bool alpha)
-            : this(cols, rows, bitdepth, alpha, false, false) {
+        public ImageInfo ( int cols , int rows , int bitdepth , bool alpha )
+            : this( cols , rows , bitdepth , alpha , false , false )
+        {
+
         }
 
         /// <summary>
@@ -115,15 +113,14 @@ namespace Pngcs {
         /// <param name="alpha">Has alpha channel</param>
         /// <param name="grayscale">Is grayscale</param>
         /// <param name="palette">Has palette</param>
-        public ImageInfo(int cols, int rows, int bitdepth, bool alpha, bool grayscale,
-                bool palette) {
+        public ImageInfo ( int cols , int rows , int bitdepth , bool alpha , bool grayscale , bool palette )
+        {
             this.Cols = cols;
             this.Rows = rows;
             this.Alpha = alpha;
             this.Indexed = palette;
             this.Greyscale = grayscale;
-            if (Greyscale && palette)
-                throw new PngjException("palette and greyscale are exclusive");
+            if( Greyscale && palette ) throw new PngjException( "palette and greyscale are exclusive" );
             this.Channels = (grayscale || palette) ? ((alpha) ? 2 : 1) : ((alpha) ? 4 : 3);
             // http://www.w3.org/TR/PNG/#11IHDR
             this.BitDepth = bitdepth;
@@ -134,43 +131,36 @@ namespace Pngcs {
             this.SamplesPerRow = Channels * this.Cols;
             this.SamplesPerRowPacked = (Packed) ? BytesPerRow : SamplesPerRow;
             // checks
-            switch (this.BitDepth) {
+            switch( this.BitDepth )
+            {
                 case 1:
                 case 2:
                 case 4:
-                    if (!(this.Indexed || this.Greyscale))
-                        throw new PngjException("only indexed or grayscale can have bitdepth="
-                                + this.BitDepth);
+                    if( !(this.Indexed || this.Greyscale) ) throw new PngjException( $"only indexed or grayscale can have bitdepth={ this.BitDepth }" );
                     break;
                 case 8:
                     break;
                 case 16:
-                    if (this.Indexed)
-                        throw new PngjException("indexed can't have bitdepth=" + this.BitDepth);
+                    if( this.Indexed ) throw new PngjException( $"indexed can't have bitdepth={ this.BitDepth }" );
                     break;
                 default:
-                    throw new PngjException("invalid bitdepth=" + this.BitDepth);
+                    throw new PngjException( $"invalid bitdepth={ this.BitDepth }" );
             }
-            if (cols < 1 || cols > MAX_COLS_ROWS_VAL)
-                throw new PngjException("invalid cols=" + cols + " ???");
-            if (rows < 1 || rows > MAX_COLS_ROWS_VAL)
-                throw new PngjException("invalid rows=" + rows + " ???");
+            if( cols<1 || cols>MAX_COLS_ROWS_VAL ) throw new PngjException( $"invalid cols={ cols } ???" );
+            if( rows<1 || rows>MAX_COLS_ROWS_VAL ) throw new PngjException( $"invalid rows={ rows } ???" );
         }
 
         /// <summary>
         /// General information, for debugging
         /// </summary>
         /// <returns>Summary</returns>
-        public override String ToString() {
-            return "ImageInfo [cols=" + Cols + ", rows=" + Rows + ", bitDepth=" + BitDepth
-                    + ", channels=" + Channels + ", bitspPixel=" + BitspPixel + ", bytesPixel="
-                    + BytesPixel + ", bytesPerRow=" + BytesPerRow + ", samplesPerRow="
-                    + SamplesPerRow + ", samplesPerRowP=" + SamplesPerRowPacked + ", alpha=" + Alpha
-                    + ", greyscale=" + Greyscale + ", indexed=" + Indexed + ", packed=" + Packed
-                    + "]";
+        public override string ToString ()
+        {
+            return $"ImageInfo [cols={ Cols }, rows={ Rows }, bitDepth={ BitDepth }, channels={ Channels }, bitspPixel={ BitspPixel }, bytesPixel={ BytesPixel }, bytesPerRow={ BytesPerRow }, samplesPerRow={ SamplesPerRow }, samplesPerRowP={ SamplesPerRowPacked }, alpha={ Alpha }, greyscale={ Greyscale }, indexed={ Indexed }, packed={ Packed }]";
         }
 
-        public override int GetHashCode() {
+        public override int GetHashCode ()
+        {
             int prime = 31;
             int result = 1;
             result = prime * result + ((Alpha) ? 1231 : 1237);
@@ -183,29 +173,21 @@ namespace Pngcs {
             return result;
         }
 
-        public override bool Equals(Object obj) {
-            if ((Object)this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if ((Object)GetType() != (Object)obj.GetType())
-                return false;
+        public override bool Equals ( Object obj )
+        {
+            if( (Object)this==obj ) return true;
+            if( obj==null ) return false;
+            if( (Object)GetType()!=(Object)obj.GetType() ) return false;
             ImageInfo other = (ImageInfo)obj;
-            if (Alpha != other.Alpha)
-                return false;
-            if (BitDepth != other.BitDepth)
-                return false;
-            if (Channels != other.Channels)
-                return false;
-            if (Cols != other.Cols)
-                return false;
-            if (Greyscale != other.Greyscale)
-                return false;
-            if (Indexed != other.Indexed)
-                return false;
-            if (Rows != other.Rows)
-                return false;
+            if( Alpha!=other.Alpha ) return false;
+            if( BitDepth!=other.BitDepth ) return false;
+            if( Channels!=other.Channels ) return false;
+            if( Cols!=other.Cols ) return false;
+            if( Greyscale!=other.Greyscale ) return false;
+            if( Indexed!=other.Indexed ) return false;
+            if( Rows!=other.Rows ) return false;
             return true;
         }
+
     }
 }
