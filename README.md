@@ -14,32 +14,16 @@ using UnityEngine;
 using using Pngcs.Unity;
 public class PngcsTest : MonoBehaviour
 {
-    [SerializeField] string _inputPath = @"D:/input.png";
-    [SerializeField] Texture2D _input;
-    [SerializeField] Texture2D _output;
-    [SerializeField] string _outputPath = @"D:/output.png";
     async void Awake ()
     {
-        if( System.IO.File.Exists( _inputPath ) )
-        {
-            
-            
-            // THIS IS HOW YOU READ:
-            _input = await PNG.READ( _inputPath );
-            
-            
-            Debug.Log( "PNG.READ successful!" );
-        } else { Debug.Log( $"invalid input path, read not tested" , this ); }
-        if( _output!=null )
-        {
-            
-            
-            // THIS IS HOW YOU WRITE:
-            PNG.WRITE( _output , _outputPath );
-            
-            
-            Debug.Log( "PNG.WRITE successful!" );
-        } else { Debug.Log( "output field is null, write not tested" , this ); }
+        // THIS IS HOW YOU READ:
+        Texture2D texture = await PNG.READ( @"D:/input.png" );
+
+        // THIS IS HOW YOU WRITE:
+        PNG.WRITE( texture , @"D:/output.png" );
+        
+        //remember to always release memory when texture is not needed anymore:
+        Destroy( texture );
     }
 }
 ```
