@@ -53,7 +53,7 @@ namespace Pngcs.Unity
                     {
                         for( int col=0 ; col<numCols ; col++ )
                         {
-                            RGBA rgba = ToRGBA( pixels[ ToTexture2DIndex( row , col , numRows , numCols ) ] , bitDepth );
+                            RGBA rgba = ToRGBA( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] , bitDepth );
                             ImageLineHelper.SetPixel( imageline , col , rgba.r , rgba.g , rgba.b , rgba.a );
                         }
                     }
@@ -61,7 +61,7 @@ namespace Pngcs.Unity
                     {
                         for( int col=0 ; col<numCols ; col++ )
                         {
-                            RGB rgb = ToRGB( pixels[ ToTexture2DIndex( row , col , numRows , numCols ) ] , bitDepth );
+                            RGB rgb = ToRGB( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] , bitDepth );
                             ImageLineHelper.SetPixel( imageline , col , rgb.r , rgb.g , rgb.b );
                         }
                     }
@@ -72,7 +72,7 @@ namespace Pngcs.Unity
                     {
                         for( int col=0 ; col<numCols ; col++ )
                         {
-                            int r = ToInt( pixels[ ToTexture2DIndex( row , col , numRows , numCols ) ].r , bitDepth );
+                            int r = ToInt( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ].r , bitDepth );
                             ImageLineHelper.SetPixel( imageline , col , r );
                         }
                     }
@@ -80,7 +80,7 @@ namespace Pngcs.Unity
                     {
                         for( int col=0 ; col<numCols ; col++ )
                         {
-                            int a = ToInt( pixels[ ToTexture2DIndex( row , col , numRows , numCols ) ].a , bitDepth );
+                            int a = ToInt( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ].a , bitDepth );
                             ImageLineHelper.SetPixel( imageline , col , a );
                         }
                     }
@@ -93,70 +93,93 @@ namespace Pngcs.Unity
         }
 
         /// <summary> Create Texture2D from PNG file </summary>
-        public static async Task<Texture2D> READ ( string filePath )
+        public static async Task<Texture2D> READ
+        (
+            string filePath
+        )
         {
-            PngReader reader = FileHelper.CreatePngReader( filePath );
-            var info = reader.ImgInfo;
-            int numRows = info.Rows;
-            int numCols = info.Cols;
-            int channels = info.Channels;
-            int bitDepth = info.BitDepth;//bits per sample (channel) in the buffer
-            int bytesPixel = info.BytesPixel;
-            if( info.Indexed ) { throw new System.NotImplementedException( "indexed png not implemented" ); }
-
-            //select appropriate texture format:
-            TextureFormat textureFormat;
-            if( bitDepth==16 && channels==1 )
+            Texture2D result;
+            int numRows = -1;
+            int numCols = -1;
+            TextureFormat textureFormat = 0;
+            Color[] pixels = null;
+            PngReader reader = null;
+            try
             {
-                textureFormat = TextureFormat.R16;
-            }
-            else { throw new System.NotImplementedException( $"bit depth '{ bitDepth }' for '{ channels }' channels not implemented" ); }
+                reader = FileHelper.CreatePngReader( filePath );
+                var info = reader.ImgInfo;
+                numRows = info.Rows;
+                numCols = info.Cols;
+                pixels = new Color[ numCols * numRows ];
             
-            //create pixel array:
-            Color[] pixels = new Color[ numCols * numRows ];
-            await Task.Run( ()=> { try {
+                int channels = info.Channels;
+                int bitDepth = info.BitDepth;
+                if( info.Indexed ) { throw new System.NotImplementedException( "indexed png not implemented" ); }
 
-                for( int row=0 ; row<numRows ; row++ )
-                {
-                    ImageLine imageLine = reader.ReadRowInt( row );
-                    var scanline = imageLine.Scanline;
-                    if( imageLine.SampleType==ImageLine.ESampleType.INT )
+                //select appropriate texture format:
+                textureFormat = GetTextureFormat( bitDepth , channels );
+                
+                //create pixel array:
+                await Task.Run( ()=> {
+
+                    for( int row=0 ; row<numRows ; row++ )
                     {
-                        for( int col=0 ; col<numCols ; col++ )
+                        ImageLine imageLine = reader.ReadRowInt( row );
+                        var scanline = imageLine.Scanline;
+                        if( imageLine.SampleType==ImageLine.ESampleType.INT )
                         {
-                            var color = new Color();
-                            for( int ch=0 ; ch<channels ; ch++ )
+                            for( int col=0 ; col<numCols ; col++ )
                             {
-                                int raw = scanline[ col * channels + ch ];
-                                float rawMax = GetBitDepthMaxValue( bitDepth );
-                                float value = (float)raw / rawMax;
+                                var color = new Color();
+                                for( int ch=0 ; ch<channels ; ch++ )
+                                {
+                                    int raw = scanline[ col * channels + ch ];
+                                    float rawMax = GetBitDepthMaxValue( bitDepth );
+                                    float value = (float)raw / rawMax;
 
-                                //
-                                if( ch==0 ) { color.r = value; }
-                                else if( ch==1 ) { color.g = value; }
-                                else if( ch==2 ) { color.b = value; }
-                                else if( ch==3 ) { color.a = value; }
-                                else { throw new System.Exception( $"channel { ch } not implemented" ); }
+                                    //
+                                    if( ch==0 ) { color.r = value; }
+                                    else if( ch==1 ) { color.g = value; }
+                                    else if( ch==2 ) { color.b = value; }
+                                    else if( ch==3 ) { color.a = value; }
+                                    else { throw new System.Exception( $"channel { ch } not implemented" ); }
+                                }
+                                pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] = color;
                             }
-                            pixels[ ToTexture2DIndex( row , col , numRows , numCols ) ] = color;
                         }
+                        else { throw new System.Exception( $"imageLine.SampleType { imageLine.SampleType } not implemented" ); }
                     }
-                    else { throw new System.Exception( $"imageLine.SampleType { imageLine.SampleType } not implemented" ); }
+
+                } );
+            }
+            catch ( System.Exception ex )
+            {
+                Debug.LogException( ex );
+                if( pixels==null )
+                {
+                    numCols = 2;
+                    numRows = 2;
+                    pixels = new Color[ numCols * numRows ];
                 }
+                if( textureFormat==0 ) { textureFormat = TextureFormat.RGBA32; }
+            }
+            finally
+            {
+                if( reader!=null ) reader.End();
 
-            } catch ( System.Exception ex ) { Debug.LogException( ex ); } } );
-
-            //create texture
-            Texture2D result = new Texture2D( numCols , numRows , textureFormat , false , true );
-            result.wrapMode = TextureWrapMode.Clamp;
-            result.SetPixels( pixels );
-            result.Apply();
-
+                //create texture
+                result = new Texture2D( numCols , numRows , textureFormat , false , true );
+                result.wrapMode = TextureWrapMode.Clamp;
+                result.SetPixels( pixels );
+                result.Apply();
+            }
             return result;
         }
 
         /// <summary> Texture2D's rows start from the bottom while PNG from the top. Hence inverted y/row.  </summary>
-        public static int ToTexture2DIndex ( int row , int col , int numRows , int numCols ) => numCols * ( numRows - 1 - row ) + col;
+        public static int IndexPngToTexture ( int row , int col , int numRows , int numCols ) => numCols * ( numRows - 1 - row ) + col;
+
+        public static int Index2dto1d ( int x , int y , int width ) => y * width + x;
         
         public static int GetBitDepth ( TextureFormat format )
         {
@@ -200,6 +223,21 @@ namespace Pngcs.Unity
                 case TextureFormat.RHalf: return true;
                 case TextureFormat.RFloat: return true;
                 default: return false;
+            }
+        }
+
+        public static TextureFormat GetTextureFormat ( int bitDepth , int channels )
+        {
+            switch ( bitDepth*10 + channels )
+            {
+                case 84: return TextureFormat.RGBA32;
+                case 83: return TextureFormat.RGB24;
+                case 81: return TextureFormat.Alpha8;
+                //case 81: return TextureFormat.R8;//not sure how to infer between Alpha8 and R8 
+                case 161: return TextureFormat.R16;
+                //case 161: return TextureFormat.RHalf;//not sure how to infer between R16 and RHalf 
+                case 321: return TextureFormat.RFloat;
+                default: throw new System.NotImplementedException( $"bit depth '{ bitDepth }' for '{ channels }' channels not implemented" );
             }
         }
 
