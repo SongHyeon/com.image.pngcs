@@ -1,7 +1,7 @@
 # Complete PNG encoding and decoding for Unity.
 
 TODO:
-- PNG.READ creating Texture2D in every useful TextureFormat (infered)
+- PNG.READ creating Texture2D in every useful TextureFormat (infered from file)
 - PNG.READ with target TextureFormat argument
 - PNG.READ with target width and height arguemnts
 - Improve READ/WRITE speed
