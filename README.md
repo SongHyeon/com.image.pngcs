@@ -1,4 +1,4 @@
-# Goal: Complete PNG encoding and decoding for Unity engine.
+# Complete PNG encoding and decoding for Unity engine
 
 TODO:
 - PNG.READ creating Texture2D in every useful TextureFormat (infered from file)
