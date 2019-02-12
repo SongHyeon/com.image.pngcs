@@ -285,6 +285,8 @@ namespace Pngcs.Unity
         {
             switch ( format )
             {
+                case TextureFormat.DXT1: return 8;//4;//indexed color not implemented, fallback to 8
+                case TextureFormat.DXT5: return 8;
                 case TextureFormat.Alpha8: return 8;
                 case TextureFormat.R8: return 8;
                 case TextureFormat.R16: return 16;
@@ -302,6 +304,8 @@ namespace Pngcs.Unity
         {
             switch ( format )
             {
+                case TextureFormat.DXT1: return false;
+                case TextureFormat.DXT5: return true;
                 case TextureFormat.Alpha8: return true;//? im not 100% sure is it alpha or, for example, red channel
                 case TextureFormat.R8: return false;
                 case TextureFormat.R16: return false;
@@ -328,16 +332,21 @@ namespace Pngcs.Unity
             }
         }
 
+        /// <summary> Guess-timate most appropriate TextureFormat for given specification. </summary>
         public static TextureFormat GetTextureFormat ( int bitDepth , int channels )
         {
             switch ( bitDepth*10 + channels )
             {
+                //case 43: return TextureFormat.DXT1;//indexed colors not implemented yet
+                case 44: return TextureFormat.RGBA4444;
+                //case 84: return TextureFormat.DXT5;//no way to infer between DXT5 and RGBA32, prefer one for runtime use
                 case 84: return TextureFormat.RGBA32;
                 case 83: return TextureFormat.RGB24;
                 case 81: return TextureFormat.Alpha8;
-                //case 81: return TextureFormat.R8;//not sure how to infer between Alpha8 and R8 
+                //case 81: return TextureFormat.R8;//no way to infer between Alpha8 and R8
                 case 161: return TextureFormat.R16;
-                //case 161: return TextureFormat.RHalf;//not sure how to infer between R16 and RHalf 
+                //case 161: return TextureFormat.RHalf;//no way to infer between R16 and RHalf
+                case 163: return TextureFormat.RGB565;
                 case 321: return TextureFormat.RFloat;
                 default: throw new System.NotImplementedException( $"bit depth '{ bitDepth }' for '{ channels }' channels not implemented" );
             }
