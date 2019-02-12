@@ -1,10 +1,10 @@
 # Complete PNG encoding and decoding for Unity engine.
 
 TODO:
-- Replace use of Color[] with NativeArray<byte>
 - PNG.READ creating Texture2D in every useful TextureFormat (infered from file)
 - PNG.READ with target TextureFormat argument
 - PNG.READ with target width and height arguemnts
+- Replace use of Color[] with NativeArray<byte>, maybe?
 - Improve READ/WRITE speeds
 
 HOW TO USE:
