@@ -4,8 +4,7 @@ Goals:
 - Drop "Pngcs" folder in your project, no other dependencies, just works.
 #
 TODO:
-- PNG.ReadAsync creating Texture2D in every useful TextureFormat (infered from file)
-- PNG.ReadAsync with target TextureFormat argument
+- PNG.ReadAsync creating Texture2D in every useful TextureFormat, infered from file (partially done already)
 - Improve READ/WRITE speeds
 - PNG.ReadAsync/WriteAsync byte[]
 - PNG.ReadAsync with target width and height arguemnts (to preview bigger image etc.)
