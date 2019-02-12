@@ -17,10 +17,10 @@ public class PngcsTest : MonoBehaviour
     async void Awake ()
     {
         // THIS IS HOW YOU READ:
-        Texture2D texture = await PNG.READ( @"D:/input.png" );
+        Texture2D texture = await PNG.ReadAsync( @"D:/input.png" );
 
         // THIS IS HOW YOU WRITE:
-        PNG.WRITE( texture , @"D:/output.png" );
+        await PNG.WriteAsync( texture , @"D:/output.png" );
         
         //remember to always release memory when texture is not needed anymore:
         Destroy( texture );
