@@ -192,7 +192,8 @@ namespace Pngcs.Unity
                 case TextureFormat.RFloat: return 32;
                 case TextureFormat.RGB24: return 8;
                 case TextureFormat.RGBA32: return 8;
-                case TextureFormat.ARGB32: return 8;
+                case TextureFormat.RGBAHalf: return 16;
+                case TextureFormat.RGBAFloat: return 32;
                 default: throw new System.NotImplementedException( $"format '{ format }' not implemented" );
             }
         }
@@ -208,7 +209,8 @@ namespace Pngcs.Unity
                 case TextureFormat.RFloat: return false;
                 case TextureFormat.RGB24: return false;
                 case TextureFormat.RGBA32: return true;
-                case TextureFormat.ARGB32: return true;
+                case TextureFormat.RGBAHalf: return true;
+                case TextureFormat.RGBAFloat: return true;
                 default: throw new System.NotImplementedException( $"format '{ format }' not implemented" );
             }
         }
