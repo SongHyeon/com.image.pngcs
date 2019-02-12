@@ -7,7 +7,9 @@ TODO:
 - PNG.ReadAsync creating Texture2D in every useful TextureFormat (infered from file)
 - PNG.ReadAsync with target TextureFormat argument
 - Improve READ/WRITE speeds
-- PNG.ReadAsync with target width and height arguemnts
+- PNG.ReadAsync/WriteAsync byte[]
+- PNG.ReadAsync with target width and height arguemnts (to preview bigger image etc.)
+- PNG.ReadAsync with image rect arguemnt (read texture atlas region)
 
 HOW TO USE:
 ```C#
