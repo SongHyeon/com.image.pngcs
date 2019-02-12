@@ -1,11 +1,14 @@
 # Complete PNG encoding and decoding for Unity engine
-
+Goals:
+- Create simple API to read and write Texture2D objects
+- Drop "Pngcs" folder in your project, no other dependencies, just works.
+#
 TODO:
-- PNG.READ creating Texture2D in every useful TextureFormat (infered from file)
-- PNG.READ with target TextureFormat argument
-- PNG.READ with target width and height arguemnts
-- Replace use of Color[] with NativeArray<byte>, maybe?
+
+- PNG.ReadAsync creating Texture2D in every useful TextureFormat (infered from file)
+- PNG.ReadAsync with target TextureFormat argument
 - Improve READ/WRITE speeds
+- PNG.ReadAsync with target width and height arguemnts
 
 HOW TO USE:
 ```C#
