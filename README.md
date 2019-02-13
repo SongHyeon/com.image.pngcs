@@ -14,7 +14,7 @@ HOW TO USE:
 ```C#
 using System.Threading.Tasks;
 using UnityEngine;
-using using Pngcs.Unity;
+using Pngcs.Unity;
 public class PngcsTest : MonoBehaviour
 {
     async void Awake ()
