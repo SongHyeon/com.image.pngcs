@@ -274,6 +274,83 @@ namespace Pngcs.Unity
             }
             return result;
         }
+        
+        /// <summary> Create Color[] from PNG file </summary>
+        public static async Task<Color[]> ReadColorsAsync
+        (
+            string filePath
+        )
+        {
+            Color[] result = null;
+            int numRows = -1;
+            int numCols = -1;
+            TextureFormat textureFormat = 0;
+            PngReader reader = null;
+            try
+            {
+                reader = FileHelper.CreatePngReader( filePath );
+                var info = reader.ImgInfo;
+                numRows = info.Rows;
+                numCols = info.Cols;
+                result = new Color[ numCols * numRows ];
+            
+                int channels = info.Channels;
+                int bitDepth = info.BitDepth;
+                if( info.Indexed ) { throw new System.NotImplementedException( "indexed png not implemented" ); }
+
+                //select appropriate texture format:
+                textureFormat = GetTextureFormat( bitDepth , channels );
+                
+                //create pixel array:
+                await Task.Run( ()=> {
+
+                    for( int row=0 ; row<numRows ; row++ )
+                    {
+                        ImageLine imageLine = reader.ReadRowInt( row );
+                        var scanline = imageLine.Scanline;
+                        if( imageLine.SampleType==ImageLine.ESampleType.INT )
+                        {
+                            for( int col=0 ; col<numCols ; col++ )
+                            {
+                                var color = new Color();
+                                for( int ch=0 ; ch<channels ; ch++ )
+                                {
+                                    int raw = scanline[ col * channels + ch ];
+                                    float rawMax = GetBitDepthMaxValue( bitDepth );
+                                    float value = (float)raw / rawMax;
+
+                                    //
+                                    if( ch==0 ) { color.r = value; }
+                                    else if( ch==1 ) { color.g = value; }
+                                    else if( ch==2 ) { color.b = value; }
+                                    else if( ch==3 ) { color.a = value; }
+                                    else { throw new System.Exception( $"channel { ch } not implemented" ); }
+                                }
+                                result[ IndexPngToTexture( row , col , numRows , numCols ) ] = color;
+                            }
+                        }
+                        else { throw new System.Exception( $"imageLine.SampleType { imageLine.SampleType } not implemented" ); }
+                    }
+
+                } );
+            }
+            catch ( System.Exception ex )
+            {
+                Debug.LogException( ex );
+                if( result==null )
+                {
+                    numCols = 2;
+                    numRows = 2;
+                    result = new Color[ numCols * numRows ];
+                }
+                if( textureFormat==0 ) { textureFormat = TextureFormat.RGBA32; }
+            }
+            finally
+            {
+                if( reader!=null ) reader.End();
+            }
+            return result;
+        }
 
         /// <summary> Texture2D's rows start from the bottom while PNG from the top. Hence inverted y/row. </summary>
         public static int IndexPngToTexture ( int row , int col , int numRows , int numCols ) => numCols * ( numRows - 1 - row ) + col;
