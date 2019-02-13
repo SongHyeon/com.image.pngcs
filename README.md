@@ -30,3 +30,8 @@ public class PngcsTest : MonoBehaviour
     }
 }
 ```
+#
+Requirements:
+- Unity 2017.1
+- Scripting runtime version: C# 4.x
+#
