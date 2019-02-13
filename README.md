@@ -3,13 +3,19 @@ GOALS:
 - Create simple API to read and write Texture2D objects, raw data
 - Drop "Pngcs" folder in your project, no other dependencies, just works.
 #
+API:
+- Texture2D PNG.ReadAsync
+- Color[] PNG.ReadColorsAsync
+- PNG.WriteAsync
+- PNG.WriteGrayscaleAsync
+#
 TODO:
 - PNG.ReadAsync creating Texture2D in every useful TextureFormat, infered from file (partially done already)
 - Improve READ/WRITE speeds
 - PNG.ReadAsync/WriteAsync byte[]
 - PNG.ReadAsync with target width and height arguments (to preview bigger image etc.)
 - PNG.ReadAsync with image rect arguemnt (read texture atlas region)
-
+#
 HOW TO USE:
 ```C#
 using System.Threading.Tasks;
