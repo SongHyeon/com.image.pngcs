@@ -269,7 +269,6 @@ namespace Pngcs.Unity
 
                 //create texture
                 result = new Texture2D( numCols , numRows , textureFormat , false , true );
-                result.wrapMode = TextureWrapMode.Clamp;
                 result.SetPixels( pixels );
                 result.Apply();
             }
