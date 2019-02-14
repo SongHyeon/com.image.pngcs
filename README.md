@@ -14,7 +14,7 @@ TODO:
 - Improve READ/WRITE speeds
 - PNG.ReadAsync/WriteAsync byte[]
 - PNG.ReadAsync with target width and height arguments (to preview bigger image etc.)
-- PNG.ReadAsync with image rect arguemnt (read texture atlas region)
+- PNG.ReadAsync with image rect argument (read texture atlas region)
 #
 HOW TO USE:
 ```C#
