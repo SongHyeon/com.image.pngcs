@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using IO = System.IO;
 
 using UnityEngine;
@@ -319,7 +319,7 @@ namespace Pngcs.Unity
             {
                 case TextureFormat.DXT1: return false;
                 case TextureFormat.DXT5: return true;
-                case TextureFormat.Alpha8: return true;//? im not 100% sure is it alpha or, for example, red channel
+                case TextureFormat.Alpha8: return false;
                 case TextureFormat.R8: return false;
                 case TextureFormat.R16: return false;
                 case TextureFormat.RHalf: return false;
@@ -355,8 +355,8 @@ namespace Pngcs.Unity
                 //case 84: return TextureFormat.DXT5;//no way to infer between DXT5 and RGBA32, prefer one for runtime use
                 case 84: return TextureFormat.RGBA32;
                 case 83: return TextureFormat.RGB24;
-                case 81: return TextureFormat.Alpha8;
-                //case 81: return TextureFormat.R8;//no way to infer between Alpha8 and R8
+                //case 81: return TextureFormat.Alpha8;//no way to infer between Alpha8 and R8, BUT Alpha8 was causing a problem, because grayscale 8bit channel seems to be saved as R in png (ie: reported as non-alpha image on read)
+                case 81: return TextureFormat.R8;
                 case 161: return TextureFormat.R16;
                 //case 161: return TextureFormat.RHalf;//no way to infer between R16 and RHalf
                 case 163: return TextureFormat.RGB565;
