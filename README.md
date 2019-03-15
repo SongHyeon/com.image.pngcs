@@ -4,8 +4,11 @@ GOALS:
 - Drop "Pngcs" folder in your project, no other dependencies, just works.
 #
 API:
+- Texture2D PNG.Read
 - Texture2D PNG.ReadAsync
+- Color[] PNG.ReadColors
 - Color[] PNG.ReadColorsAsync
+- PNG.Write
 - PNG.WriteAsync
 - PNG.WriteGrayscaleAsync
 #
