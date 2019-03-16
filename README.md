@@ -13,11 +13,11 @@ API:
 - PNG.WriteGrayscaleAsync
 #
 TODO:
-- PNG.ReadAsync creating Texture2D in every useful TextureFormat, infered from file (partially done already)
+- PNG.Read creating Texture2D in every useful TextureFormat, infered from file (partially done already)
 - Improve READ/WRITE speeds
-- PNG.ReadAsync/WriteAsync byte[]
-- PNG.ReadAsync with target width and height arguments (to preview bigger image etc.)
-- PNG.ReadAsync with image rect argument (read texture atlas region)
+- PNG.Read/Write byte[]
+- PNG.Read with target width and height arguments (to preview bigger image etc.)
+- PNG.Read with image rect argument (read texture atlas region)
 #
 HOW TO USE:
 ```C#
