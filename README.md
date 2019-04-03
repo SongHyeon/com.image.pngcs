@@ -29,7 +29,7 @@ public class PngcsTest : MonoBehaviour
     async void Awake ()
     {
         // THIS IS HOW YOU READ:
-        Texture2D texture = await PNG.Read( @"D:/input.png" );
+        Texture2D texture = PNG.Read( @"D:/input.png" );
 
         // THIS IS HOW YOU WRITE:
         await PNG.WriteAsync( texture , @"D:/output.png" );
