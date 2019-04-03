@@ -5,9 +5,9 @@ GOALS:
 #
 API:
 - Texture2D PNG.Read
-- Texture2D PNG.ReadAsync
+- Texture2D PNG.ReadAsync (experimental)
 - Color[] PNG.ReadColors
-- Color[] PNG.ReadColorsAsync
+- Color[] PNG.ReadColorsAsync (experimental)
 - PNG.Write
 - PNG.WriteAsync
 - PNG.WriteGrayscaleAsync
