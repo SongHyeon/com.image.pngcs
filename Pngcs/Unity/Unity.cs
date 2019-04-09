@@ -111,11 +111,9 @@ namespace Pngcs.Unity
 
                 int numRows = info.Rows;
                 int numCols = info.Cols;
+                ImageLine line = new ImageLine( info );
                 for( int row=0 ; row<numRows ; row++ )
                 {
-                    ImageLine line = new ImageLine( info );
-                    int maxSampleVal = line.maxSampleVal;
-
                     //fill line:
                     fillLine( texture , line , info , row );
                     
@@ -186,11 +184,9 @@ namespace Pngcs.Unity
 
             int numRows = info.Rows;
             int numCols = info.Cols;
+            ImageLine imageline = new ImageLine( info );
             for( int row=0 ; row<numRows ; row++ )
             {
-                ImageLine imageline = new ImageLine( info );
-                int maxSampleVal = imageline.maxSampleVal;
-
                 //fill line:
                 if( greyscale==false )
                 {
@@ -323,11 +319,9 @@ namespace Pngcs.Unity
 
                     int numRows = info.Rows;
                     int numCols = info.Cols;
+                    ImageLine imageline = new ImageLine( info );
                     for( int row=0 ; row<numRows ; row++ )
                     {
-                        ImageLine imageline = new ImageLine( info );
-                        int maxSampleVal = imageline.maxSampleVal;
-
                         //fill line:
                         if( alpha==false )
                         {
@@ -387,11 +381,9 @@ namespace Pngcs.Unity
 
                     int numRows = info.Rows;
                     int numCols = info.Cols;
+                    ImageLine imageline = new ImageLine( info );
                     for( int row=0 ; row<numRows ; row++ )
                     {
-                        ImageLine imageline = new ImageLine( info );
-                        int maxSampleVal = imageline.maxSampleVal;
-
                         //fill line:
                         if( alpha==false )
                         {
