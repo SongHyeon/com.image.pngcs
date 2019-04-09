@@ -67,6 +67,69 @@ namespace Pngcs.Unity
             finally { await Task.CompletedTask; }
         }
 
+        /// <summary>
+        /// Write large texture to PNG, async.
+        /// Execute from Main Thread.
+        /// </summary>
+        public static async Task WriteLargeAsync
+        (
+            Texture2D texture ,
+            string filePath
+        )
+        {
+            await WriteLargeAsync( texture , filePath , FillLine );
+        }
+
+        /// <summary>
+        /// Write large texture to PNG, async. FillLine( texture , image line , image info , row ).
+        /// Execute from Main Thread.
+        /// </summary>
+        public static async Task WriteLargeAsync
+        (
+            Texture2D texture ,
+            string filePath ,
+            System.Action<Texture2D,ImageLine,ImageInfo,int> fillLine
+        )
+        {
+            try
+            {
+                var info = new ImageInfo(
+                    texture.width ,
+                    texture.height ,
+                    GetBitDepth( texture.format ) ,
+                    GetIsAlpha( texture.format ) ,
+                    GetIsGreyscale(texture. format ) ,
+                    false//not implemented here yet//bitDepth==4
+                );
+                    
+                // open image for writing:
+                PngWriter writer = FileHelper.CreatePngWriter( filePath , info , true );
+                
+                // add some optional metadata (chunks)
+                var meta = writer.GetMetadata();
+                meta.SetTimeNow( 0 );// 0 seconds fron now = now
+
+                int numRows = info.Rows;
+                int numCols = info.Cols;
+                for( int row=0 ; row<numRows ; row++ )
+                {
+                    ImageLine line = new ImageLine( info );
+                    int maxSampleVal = line.maxSampleVal;
+
+                    //fill line:
+                    fillLine( texture , line , info , row );
+                    
+                    //write line on another thread:
+                    await Task.Run(
+                        ()=> writer.WriteRow( line , row )
+                    );
+                }
+                writer.End();
+            }
+            catch( System.Exception ex ) { Debug.LogException(ex); await Task.CompletedTask; }//kills debugger execution loop on exception
+            finally { await Task.CompletedTask; }
+        }
+
         /// <summary> Write PNG to file </summary>
         public static void Write
         (
@@ -172,6 +235,62 @@ namespace Pngcs.Unity
                 writer.WriteRow( imageline , row );
             }
             writer.End();
+        }
+
+        static void FillLine
+        (
+            Texture2D texture ,
+            ImageLine line ,
+            ImageInfo info ,
+            int row
+        )
+        {
+            int numCols = info.Cols;
+            int numRows = info.Rows;
+            int bitDepth = info.BitDepth;
+            bool alpha = info.Alpha;
+            bool greyscale = info.Greyscale;
+
+            //fill line:
+            Color[] pixels = texture.GetPixels( 0 , row , numCols , 1 );
+            if( greyscale==false )
+            {
+                if( alpha )
+                {
+                    for( int col=0 ; col<numCols ; col++ )
+                    {
+                        RGBA rgba = ToRGBA( pixels[col] , bitDepth );
+                        ImageLineHelper.SetPixel( line , col , rgba.r , rgba.g , rgba.b , rgba.a );
+                    }
+                }
+                else
+                {
+                    for( int col=0 ; col<numCols ; col++ )
+                    {
+                        RGB rgb = ToRGB( pixels[col] , bitDepth );
+                        ImageLineHelper.SetPixel( line , col , rgb.r , rgb.g , rgb.b );
+                    }
+                }
+            }
+            else
+            {
+                if( alpha==false )
+                {
+                    for( int col=0 ; col<numCols ; col++ )
+                    {
+                        int r = ToInt( pixels[col].r , bitDepth );
+                        ImageLineHelper.SetPixel( line , col , r );
+                    }
+                }
+                else
+                {
+                    for( int col=0 ; col<numCols ; col++ )
+                    {
+                        int a = ToInt( pixels[col].a , bitDepth );
+                        ImageLineHelper.SetPixel( line , col , a );
+                    }
+                }
+            }
         }
 
         /// <summary> Writes 16-bit grayscale image </summary>
