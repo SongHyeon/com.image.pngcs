@@ -26,13 +26,13 @@ using UnityEngine;
 using Pngcs.Unity;
 public class PngcsTest : MonoBehaviour
 {
-    async void Awake ()
+    void Awake ()
     {
         // THIS IS HOW YOU READ:
         Texture2D texture = PNG.Read( @"D:/input.png" );
 
         // THIS IS HOW YOU WRITE:
-        await PNG.WriteAsync( texture , @"D:/output.png" );
+        PNG.Write( texture , @"D:/output.png" );
         
         //remember to always release memory when texture is not needed anymore:
         Destroy( texture );
