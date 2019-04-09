@@ -22,7 +22,6 @@ TODO:
 #
 HOW TO USE:
 ```C#
-using System.Threading.Tasks;
 using UnityEngine;
 using Pngcs.Unity;
 public class PngcsTest : MonoBehaviour
