@@ -10,6 +10,7 @@ API:
 - Color[] PNG.ReadColorsAsync (experimental)
 - PNG.Write
 - PNG.WriteAsync
+- PNG.WriteLargeAsync (experimental)
 - PNG.WriteGrayscaleAsync
 #
 TODO:
