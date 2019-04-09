@@ -88,7 +88,7 @@ namespace Pngcs.Unity
         (
             Texture2D texture ,
             string filePath ,
-            System.Action<Texture2D,ImageLine,ImageInfo,int> fillLine
+            System.Func<Texture2D,ImageLine,ImageInfo,int,Task> fillLine
         )
         {
             try
@@ -114,8 +114,8 @@ namespace Pngcs.Unity
                 ImageLine line = new ImageLine( info );
                 for( int row=0 ; row<numRows ; row++ )
                 {
-                    //fill line:
-                    fillLine( texture , line , info , row );
+                    //fill line on main or different thread:
+                    await fillLine( texture , line , info , row );
                     
                     //write line on another thread:
                     await Task.Run(
@@ -233,7 +233,7 @@ namespace Pngcs.Unity
             writer.End();
         }
 
-        static void FillLine
+        static async Task FillLine
         (
             Texture2D texture ,
             ImageLine line ,
@@ -287,6 +287,8 @@ namespace Pngcs.Unity
                     }
                 }
             }
+
+            await Task.CompletedTask;
         }
 
         /// <summary> Writes 16-bit grayscale image </summary>
