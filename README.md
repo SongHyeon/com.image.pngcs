@@ -1,6 +1,5 @@
-# Complete PNG encoding and decoding for Unity engine
-GOALS:
-- Create simple API to read and write Texture2D objects, raw data
+# GOALS: Complete PNG encoding and decoding for Unity engine
+- Simple API to read and write Texture2D objects, raw data
 - Drop "Pngcs" folder in your project, no other dependencies, just works.
 #
 API:
