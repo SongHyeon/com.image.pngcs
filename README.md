@@ -32,7 +32,10 @@ public class PngcsTest : MonoBehaviour
 
         // THIS IS HOW YOU WRITE:
         PNG.Write( texture , @"D:/output.png" );
-        
+    }
+    
+    void OnDestroy ()
+    {
         //remember to always release memory when texture is not needed anymore:
         Destroy( texture );
     }
