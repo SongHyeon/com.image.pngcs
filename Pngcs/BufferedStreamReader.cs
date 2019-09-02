@@ -63,7 +63,7 @@ namespace Pngcs
                     pendinglen -= n;
                 }
             }
-            if( n<1 && failIfNoFeed ) { throw new PngjInputException( "failed feed bytes" ); }
+            if( n<1 && failIfNoFeed ) { throw new System.IO.IOException( "failed feed bytes" ); }
             return n;
         }
 
@@ -94,10 +94,7 @@ namespace Pngcs
                     close();
                 }
             }
-            catch( IOException e )
-            {
-                throw new PngjInputException( e );
-            }
+            catch( IOException e ) { throw e; }
         }
 
         public bool hasMoreToFeed ()

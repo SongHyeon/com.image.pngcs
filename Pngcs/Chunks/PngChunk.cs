@@ -185,7 +185,7 @@ namespace Pngcs.Chunks {
         public static T CloneChunk<T>(T chunk, ImageInfo info) where T : PngChunk {
             PngChunk cn = FactoryFromId(chunk.Id, info);
             if ((Object)cn.GetType() != (Object)chunk.GetType())
-                throw new PngjException("bad class cloning chunk: " + cn.GetType() + " "
+                throw new System.Exception("bad class cloning chunk: " + cn.GetType() + " "
                         + chunk.GetType());
             cn.CloneDataFromRead(chunk);
             return (T)cn;
@@ -194,7 +194,7 @@ namespace Pngcs.Chunks {
         internal void write(Stream os) {
             ChunkRaw c = CreateRawChunk();
             if (c == null)
-                throw new PngjException("null chunk ! creation failed for " + this);
+                throw new System.Exception("null chunk ! creation failed for " + this);
             c.WriteChunk(os);
         }
         /// <summary>

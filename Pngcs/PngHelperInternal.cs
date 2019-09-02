@@ -56,7 +56,7 @@ namespace Pngcs {
                     return -1;
                 return (b1 << 8) + b2;
             } catch (IOException e) {
-                throw new PngjInputException("error reading readInt2", e);
+                throw new IOException("error reading readInt2", e);
             }
         }
 
@@ -74,7 +74,7 @@ namespace Pngcs {
                     return -1;
                 return (b1 << 24) + (b2 << 16) + (b3 << 8) + b4;
             } catch (IOException e) {
-                throw new PngjInputException("error reading readInt4", e);
+                throw new IOException("error reading readInt4", e);
             }
         }
 
@@ -126,7 +126,7 @@ namespace Pngcs {
                     read += n;
                 }
             } catch (IOException e) {
-                throw new PngjInputException("error reading", e);
+                throw new IOException("error reading", e);
             }
         }
 
@@ -137,44 +137,44 @@ namespace Pngcs {
                 while (remain > 0) {
                     read = ist.Read(buf, 0, remain > buf.Length ? buf.Length : remain);
                     if (read < 0)
-                        throw new PngjInputException("error reading (skipping) : EOF");
+                        throw new IOException("error reading (skipping) : EOF");
                     remain -= read;
                 }
             } catch (IOException e) {
-                throw new PngjInputException("error reading (skipping)", e);
+                throw new IOException("error reading (skipping)", e);
             }
         }
 
-        public static void WriteBytes(Stream os, byte[] b) {
-            try {
+        public static void WriteBytes ( Stream os , byte[] b )
+        {
+            try
+            {
                 os.Write(b, 0, b.Length);
-            } catch (IOException e) {
-                throw new PngjOutputException(e);
             }
+            catch (IOException e) { throw (e); }
         }
 
         public static void WriteBytes(Stream os, byte[] b, int offset, int n) {
-            try {
+            try
+            {
                 os.Write(b, offset, n);
-            } catch (IOException e) {
-                throw new PngjOutputException(e);
             }
+            catch (IOException e) { throw e; }
         }
 
         public static int ReadByte(Stream mask0) {
-            try {
+            try
+            {
                 return mask0.ReadByte();
-            } catch (IOException e) {
-                throw new PngjOutputException(e);
             }
+            catch (IOException e) { throw e; }
         }
 
         public static void WriteByte(Stream os, byte b) {
             try {
                 os.WriteByte((byte)b);
-            } catch (IOException e) {
-                throw new PngjOutputException(e);
             }
+            catch (IOException e) { throw e; }
         }
 
 

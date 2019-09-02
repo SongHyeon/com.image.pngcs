@@ -124,7 +124,7 @@ namespace Pngcs
             }
             else
             {
-                throw new PngjExceptionInternal( "bad ImageLine initialization" );
+                throw new System.Exception( "bad ImageLine initialization" );
             }
             this.Rown = -1;
         }

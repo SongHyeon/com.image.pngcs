@@ -120,7 +120,7 @@ namespace Pngcs
             this.Alpha = alpha;
             this.Indexed = palette;
             this.Greyscale = grayscale;
-            if( Greyscale && palette ) throw new PngjException( "palette and greyscale are exclusive" );
+            if( Greyscale && palette ) throw new System.Exception( "palette and greyscale are exclusive" );
             this.Channels = (grayscale || palette) ? ((alpha) ? 2 : 1) : ((alpha) ? 4 : 3);
             // http://www.w3.org/TR/PNG/#11IHDR
             this.BitDepth = bitdepth;
@@ -136,18 +136,18 @@ namespace Pngcs
                 case 1:
                 case 2:
                 case 4:
-                    if( !(this.Indexed || this.Greyscale) ) throw new PngjException( $"only indexed or grayscale can have bitdepth={ this.BitDepth }" );
+                    if( !(this.Indexed || this.Greyscale) ) throw new System.Exception( $"only indexed or grayscale can have bitdepth={ this.BitDepth }" );
                     break;
                 case 8:
                     break;
                 case 16:
-                    if( this.Indexed ) throw new PngjException( $"indexed can't have bitdepth={ this.BitDepth }" );
+                    if( this.Indexed ) throw new System.Exception( $"indexed can't have bitdepth={ this.BitDepth }" );
                     break;
                 default:
-                    throw new PngjException( $"invalid bitdepth={ this.BitDepth }" );
+                    throw new System.Exception( $"invalid bitdepth={ this.BitDepth }" );
             }
-            if( cols<1 || cols>MAX_COLS_ROWS_VAL ) throw new PngjException( $"invalid cols={ cols } ???" );
-            if( rows<1 || rows>MAX_COLS_ROWS_VAL ) throw new PngjException( $"invalid rows={ rows } ???" );
+            if( cols<1 || cols>MAX_COLS_ROWS_VAL ) throw new System.Exception( $"invalid cols={ cols } ???" );
+            if( rows<1 || rows>MAX_COLS_ROWS_VAL ) throw new System.Exception( $"invalid rows={ rows } ???" );
         }
 
         /// <summary>

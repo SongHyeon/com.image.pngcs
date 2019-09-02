@@ -18,7 +18,7 @@ namespace Pngcs {
 
         public ProgressiveOutputStream(int size_0) {
             this.size = size_0;
-            if (size < 8) throw new PngjException("bad size for ProgressiveOutputStream: " + size);
+            if (size < 8) throw new System.Exception("bad size for ProgressiveOutputStream: " + size);
         }
 
         public override void Close() {

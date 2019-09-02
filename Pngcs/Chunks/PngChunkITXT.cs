@@ -24,7 +24,7 @@ namespace Pngcs.Chunks {
 
         public override ChunkRaw CreateRawChunk() {
             if (key.Length == 0)
-                throw new PngjException("Text chunk key must be non empty");
+                throw new System.Exception("Text chunk key must be non empty");
             MemoryStream ba = new MemoryStream();
             ChunkHelper.WriteBytesToStream(ba, ChunkHelper.ToBytes(key));
             ba.WriteByte(0); // separator
@@ -59,13 +59,13 @@ namespace Pngcs.Chunks {
                     break;
             }
             if (nullsFound != 3)
-                throw new PngjException("Bad formed PngChunkITXT chunk");
+                throw new System.Exception("Bad formed PngChunkITXT chunk");
             key = ChunkHelper.ToString(c.Data, 0, nullsIdx[0]);
             int i = nullsIdx[0] + 1;
             compressed = c.Data[i] == 0 ? false : true;
             i++;
             if (compressed && c.Data[i] != 0)
-                throw new PngjException("Bad formed PngChunkITXT chunk - bad compression method ");
+                throw new System.Exception("Bad formed PngChunkITXT chunk - bad compression method ");
             langTag = ChunkHelper.ToString(c.Data, i, nullsIdx[1] - i);
             translatedTag = ChunkHelper.ToStringUTF8(c.Data, nullsIdx[1] + 1, nullsIdx[2] - nullsIdx[1] - 1);
             i = nullsIdx[2] + 1;

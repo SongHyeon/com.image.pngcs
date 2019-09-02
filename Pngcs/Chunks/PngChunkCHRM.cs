@@ -43,7 +43,7 @@ namespace Pngcs.Chunks {
 
         public override void ParseFromRaw(ChunkRaw c) {
             if (c.Len != 32)
-                throw new PngjException("bad chunk " + c);
+                throw new System.Exception("bad chunk " + c);
             whitex = PngHelperInternal.IntToDouble100000(PngHelperInternal.ReadInt4fromBytes(c.Data, 0));
             whitey = PngHelperInternal.IntToDouble100000(PngHelperInternal.ReadInt4fromBytes(c.Data, 4));
             redx = PngHelperInternal.IntToDouble100000(PngHelperInternal.ReadInt4fromBytes(c.Data, 8));

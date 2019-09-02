@@ -20,7 +20,7 @@ namespace Pngcs.Chunks {
 
         public override ChunkRaw CreateRawChunk() {
             if (key.Length == 0)
-                throw new PngjException("Text chunk key must be non empty");
+                throw new System.Exception("Text chunk key must be non empty");
             MemoryStream ba = new MemoryStream();
             ChunkHelper.WriteBytesToStream(ba, ChunkHelper.ToBytes(key));
             ba.WriteByte(0); // separator
@@ -42,11 +42,11 @@ namespace Pngcs.Chunks {
                 break;
             }
             if (nullsep < 0 || nullsep > c.Data.Length - 2)
-                throw new PngjException("bad zTXt chunk: no separator found");
+                throw new System.Exception("bad zTXt chunk: no separator found");
             key = ChunkHelper.ToString(c.Data, 0, nullsep);
             int compmet = (int)c.Data[nullsep + 1];
             if (compmet != 0)
-                throw new PngjException("bad zTXt chunk: unknown compression method");
+                throw new System.Exception("bad zTXt chunk: unknown compression method");
             byte[] uncomp = ChunkHelper.compressBytes(c.Data, nullsep + 2, c.Data.Length - nullsep - 2, false); // uncompress
             val = ChunkHelper.ToString(uncomp);
         }

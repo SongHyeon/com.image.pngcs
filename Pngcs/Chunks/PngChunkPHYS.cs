@@ -45,7 +45,7 @@ namespace Pngcs.Chunks {
 
         public override void ParseFromRaw(ChunkRaw chunk) {
             if (chunk.Len != 9)
-                throw new PngjException("bad chunk length " + chunk);
+                throw new System.Exception("bad chunk length " + chunk);
             PixelsxUnitX = Pngcs.PngHelperInternal.ReadInt4fromBytes(chunk.Data, 0);
             if (PixelsxUnitX < 0)
                 PixelsxUnitX += 0x100000000L;

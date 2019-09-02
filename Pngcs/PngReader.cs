@@ -181,7 +181,7 @@ namespace Pngcs
             PngHelperInternal.ReadBytes(inputStream, pngid, 0, pngid.Length);
             offset += pngid.Length;
             if (!PngCsUtils.arraysEqual(pngid, PngHelperInternal.PNG_ID_SIGNATURE))
-                throw new PngjInputException("Bad PNG signature");
+                throw new System.IO.IOException("Bad PNG signature");
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_0_IDHR;
             // reads first chunk IDHR
             int clen = PngHelperInternal.ReadInt4(inputStream);
@@ -191,7 +191,7 @@ namespace Pngcs
             byte[] chunkid = new byte[4];
             PngHelperInternal.ReadBytes(inputStream, chunkid, 0, 4);
             if (!PngCsUtils.arraysEqual4(chunkid, ChunkHelper.b_IHDR))
-                throw new PngjInputException("IHDR not found as first chunk??? ["
+                throw new System.IO.IOException("IHDR not found as first chunk??? ["
                         + ChunkHelper.ToString(chunkid) + "]");
             offset += 4;
             PngChunkIHDR ihdr = (PngChunkIHDR)ReadChunk(chunkid, clen, false);
@@ -207,13 +207,13 @@ namespace Pngcs
             deinterlacer = interlaced ? new PngDeinterlacer(ImgInfo) : null;
             // some checks
             if (ihdr.Filmeth != 0 || ihdr.Compmeth != 0 || (ihdr.Interlaced & 0xFFFE) != 0)
-                throw new PngjInputException("compmethod or filtermethod or interlaced unrecognized");
+                throw new System.IO.IOException("compmethod or filtermethod or interlaced unrecognized");
             if (ihdr.Colormodel < 0 || ihdr.Colormodel > 6 || ihdr.Colormodel == 1
                     || ihdr.Colormodel == 5)
-                throw new PngjInputException("Invalid colormodel " + ihdr.Colormodel);
+                throw new System.IO.IOException("Invalid colormodel " + ihdr.Colormodel);
             if (ihdr.Bitspc != 1 && ihdr.Bitspc != 2 && ihdr.Bitspc != 4 && ihdr.Bitspc != 8
                     && ihdr.Bitspc != 16)
-                throw new PngjInputException("Invalid bit depth " + ihdr.Bitspc);
+                throw new System.IO.IOException("Invalid bit depth " + ihdr.Bitspc);
         }
 
 
@@ -273,7 +273,7 @@ namespace Pngcs
                     UnfilterRowPaeth(nbytes);
                     break;
                 default:
-                    throw new PngjInputException("Filter type " + ftn + " not implemented");
+                    throw new System.IO.IOException("Filter type " + ftn + " not implemented");
             }
             if( crctest!=null )
             {
@@ -360,7 +360,7 @@ namespace Pngcs
                     chunksList.AppendReadChunk(new PngChunkIDAT(ImgInfo, clen, offset - 8), CurrentChunkGroup);
                     break;
                 } else if (PngCsUtils.arraysEqual4(chunkid, Pngcs.Chunks.ChunkHelper.b_IEND)) {
-                    throw new PngjInputException("END chunk found before image data (IDAT) at offset=" + offset);
+                    throw new System.IO.IOException("END chunk found before image data (IDAT) at offset=" + offset);
                 }
                 string chunkids = ChunkHelper.ToString(chunkid);
                 if (chunkids.Equals(ChunkHelper.PLTE))
@@ -371,7 +371,7 @@ namespace Pngcs
             }
             int idatLen = found ? clen : -1;
             if (idatLen < 0)
-                throw new PngjInputException("first idat chunk not found!");
+                throw new System.IO.IOException("first idat chunk not found!");
             iIdatCstream = new PngIDatChunkInputStream(inputStream, idatLen, offset);
             idatIstream = ZlibStreamFactory.createZlibInputStream(iIdatCstream, true);
             if (!crcEnabled)
@@ -399,7 +399,7 @@ namespace Pngcs
                     clen = PngHelperInternal.ReadInt4(inputStream);
                     offset += 4;
                     if (clen < 0)
-                        throw new PngjInputException("bad len " + clen);
+                        throw new System.IO.IOException("bad len " + clen);
                     PngHelperInternal.ReadBytes(inputStream, chunkid, 0, 4);
                     offset += 4;
                 }
@@ -416,7 +416,7 @@ namespace Pngcs
                 ReadChunk( chunkid , clen , skip );
             }
             if (!endfound)
-                throw new PngjInputException("end chunk not found - offset=" + offset);
+                throw new System.IO.IOException("end chunk not found - offset=" + offset);
             // PngHelper.logdebug("end chunk found ok offset=" + offset);
         }
 
@@ -426,7 +426,7 @@ namespace Pngcs
         /// </summary>
         /// <returns></returns>
         private PngChunk ReadChunk(byte[] chunkid, int clen, bool skipforced) {
-            if (clen < 0) throw new PngjInputException("invalid chunk lenght: " + clen);
+            if (clen < 0) throw new System.IO.IOException("invalid chunk lenght: " + clen);
             // skipChunksByIdSet is created lazyly, if fist IHDR has already been read
             if (skipChunkIdsSet == null && CurrentChunkGroup > ChunksList.CHUNK_GROUP_0_IDHR) {
                 skipChunkIdsSet = new Dictionary<string, int>();
@@ -439,7 +439,7 @@ namespace Pngcs
             bool critical = ChunkHelper.IsCritical(chunkidstr);
             bool skip = skipforced;
             if (MaxTotalBytesRead > 0 && clen + offset > MaxTotalBytesRead)
-                throw new PngjInputException("Maximum total bytes to read exceeeded: " + MaxTotalBytesRead + " offset:"
+                throw new System.IO.IOException("Maximum total bytes to read exceeeded: " + MaxTotalBytesRead + " offset:"
                         + offset + " clen=" + clen);
             // an ancillary chunks can be skipped because of several reasons:
             if (CurrentChunkGroup > ChunksList.CHUNK_GROUP_0_IDHR && !ChunkHelper.IsCritical(chunkidstr))
@@ -551,7 +551,7 @@ namespace Pngcs
             }
             if( interlaced==false )
             {
-                if( nrow<=rowNum ) { throw new PngjInputException( $"rows must be read in increasing order: { nrow }"); }
+                if( nrow<=rowNum ) { throw new System.IO.IOException( $"rows must be read in increasing order: { nrow }"); }
                 int bytesread = 0;
                 while( rowNum<nrow )
                 {
@@ -584,7 +584,7 @@ namespace Pngcs
             }
             if( interlaced==false )
             {
-                if (nrow <= rowNum) { throw new PngjInputException( $"rows must be read in increasing order: { nrow }" ); }
+                if (nrow <= rowNum) { throw new System.IO.IOException( $"rows must be read in increasing order: { nrow }" ); }
                 int bytesread = 0;
                 while( rowNum<nrow )
                 {
@@ -647,7 +647,7 @@ namespace Pngcs
             if (nRows < 0)
                 nRows = (ImgInfo.Rows - rowOffset) / rowStep;
             if (rowStep < 1 || rowOffset < 0 || nRows * rowStep + rowOffset > ImgInfo.Rows)
-                throw new PngjInputException("bad args");
+                throw new System.IO.IOException("bad args");
             ImageLines imlines = new ImageLines(ImgInfo, ImageLine.ESampleType.INT, unpackedMode, rowOffset, nRows, rowStep);
             if (!interlaced) {
                 for (int j = 0; j < ImgInfo.Rows; j++) {
@@ -682,7 +682,7 @@ namespace Pngcs
             if (nRows < 0)
                 nRows = (ImgInfo.Rows - rowOffset) / rowStep;
             if (rowStep < 1 || rowOffset < 0 || nRows * rowStep + rowOffset > ImgInfo.Rows)
-                throw new PngjInputException("bad args");
+                throw new System.IO.IOException("bad args");
             ImageLines imlines = new ImageLines(ImgInfo, ImageLine.ESampleType.BYTE, unpackedMode, rowOffset, nRows, rowStep);
             if (!interlaced) {
                 for (int j = 0; j < ImgInfo.Rows; j++) {
@@ -726,14 +726,14 @@ namespace Pngcs
             int bytesRead = ImgInfo.BytesPerRow; // NOT including the filter byte
             if( interlaced )
             {
-                if( nrow<0 || nrow>deinterlacer.getRows() || (nrow != 0 && nrow != deinterlacer.getCurrRowSubimg() + 1)) { throw new PngjInputException( $"invalid row in interlaced mode: { nrow }"); }
+                if( nrow<0 || nrow>deinterlacer.getRows() || (nrow != 0 && nrow != deinterlacer.getCurrRowSubimg() + 1)) { throw new System.IO.IOException( $"invalid row in interlaced mode: { nrow }"); }
                 deinterlacer.setRow( nrow );
                 bytesRead = ( ImgInfo.BitspPixel * deinterlacer.getPixelsToRead() + 7 ) / 8;
-                if( bytesRead<1 ) { throw new PngjExceptionInternal( "what's going on??" ); }
+                if( bytesRead<1 ) { throw new System.Exception( "what's going on??" ); }
             }
             else
             { // check for non interlaced
-                if( nrow<0 || nrow>=ImgInfo.Rows || nrow!=rowNum+1 ) { throw new PngjInputException( $"invalid row: { nrow }" ); }
+                if( nrow<0 || nrow>=ImgInfo.Rows || nrow!=rowNum+1 ) { throw new System.IO.IOException( $"invalid row: { nrow }" ); }
             }
             rowNum = nrow;
             // swap buffers
@@ -743,8 +743,8 @@ namespace Pngcs
             // loads in rowbfilter "raw" bytes, with filter
             PngHelperInternal.ReadBytes(idatIstream, rowbfilter, 0, bytesRead + 1);
             offset = iIdatCstream.GetOffset();
-            if( offset<0 ) { throw new PngjExceptionInternal( $"bad offset ?? { offset }"); }
-            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new PngjInputException( $"Reading IDAT: Maximum total bytes to read exceeeded: { MaxTotalBytesRead } offset:{ offset }" ); }
+            if( offset<0 ) { throw new System.Exception( $"bad offset ?? { offset }"); }
+            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new System.IO.IOException( $"Reading IDAT: Maximum total bytes to read exceeeded: { MaxTotalBytesRead } offset:{ offset }" ); }
             rowb[0] = 0;
             UnfilterRow(bytesRead);
             rowb[0] = rowbfilter[0];
@@ -768,10 +768,10 @@ namespace Pngcs
                 do {
                     r = iIdatCstream.Read( rowbfilter , 0 , rowbfilter.Length );
                 } while( r>=0 );
-            } catch( IOException e ) { throw new PngjInputException( "error in raw read of IDAT" , e ); }
+            } catch( IOException e ) { throw new System.IO.IOException( "error in raw read of IDAT" , e ); }
             offset = iIdatCstream.GetOffset();
-            if( offset<0 ) { throw new PngjExceptionInternal( $"bad offset ?? { offset }" ); }
-            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new PngjInputException( $"Reading IDAT: Maximum total bytes to read exceeeded: { MaxTotalBytesRead } offset:{ offset }" ); }
+            if( offset<0 ) { throw new System.Exception( $"bad offset ?? { offset }" ); }
+            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new System.IO.IOException( $"Reading IDAT: Maximum total bytes to read exceeeded: { MaxTotalBytesRead } offset:{ offset }" ); }
             ReadLastAndClose();
         }
 

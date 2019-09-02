@@ -179,7 +179,8 @@ namespace Pngcs.Chunks {
         }
 
         internal static byte[] compressBytes(byte[] ori, int offset, int len, bool compress) {
-            try {
+            try
+            {
                 MemoryStream inb = new MemoryStream(ori, offset, len);
                 Stream inx = inb;
                 if (!compress) inx = ZlibStreamFactory.createZlibInputStream(inb);
@@ -191,9 +192,8 @@ namespace Pngcs.Chunks {
                 outx.Close();
                 byte[] res = outb.ToArray();
                 return res;
-            } catch (Exception e) {
-                throw new PngjException(e);
             }
+            catch (Exception e) { throw e; }
         }
 
         private static void shovelInToOut(Stream inx, Stream outx) {

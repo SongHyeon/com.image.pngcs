@@ -176,9 +176,9 @@ namespace Pngcs {
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_2_PLTE;
             nw = chunksList.writeChunks(outputStream, CurrentChunkGroup);
             if (nw > 0 && ImgInfo.Greyscale)
-                throw new PngjOutputException("cannot write palette for this format");
+                throw new System.IO.IOException("cannot write palette for this format");
             if (nw == 0 && ImgInfo.Indexed)
-                throw new PngjOutputException("missing palette");
+                throw new System.IO.IOException("missing palette");
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_3_AFTERPLTE;
             nw = chunksList.writeChunks(outputStream, CurrentChunkGroup);
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_4_IDAT;
@@ -192,7 +192,7 @@ namespace Pngcs {
             // should not be unwriten chunks
             List<PngChunk> pending = chunksList.GetQueuedChunks();
             if (pending.Count > 0)
-                throw new PngjOutputException(pending.Count + " chunks were not written! Eg: " + pending[0].ToString());
+                throw new System.IO.IOException(pending.Count + " chunks were not written! Eg: " + pending[0].ToString());
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_6_END;
         }
 
@@ -349,7 +349,7 @@ namespace Pngcs {
                     FilterRowPaeth();
                     break;
                 default:
-                    throw new PngjOutputException("Filter type " + filterType + " not implemented");
+                    throw new System.IO.IOException("Filter type " + filterType + " not implemented");
             }
             reportResultsForFilter( rown , filterType , false );
         }
@@ -363,7 +363,7 @@ namespace Pngcs {
             rowNum++;
             if( rown>=0 && rowNum!=rown )
             {
-                throw new PngjOutputException( $"rows must be written in order: expected:{ rowNum } passed:{ rown }" );
+                throw new System.IO.IOException( $"rows must be written in order: expected:{ rowNum } passed:{ rown }" );
             }
             // swap
             byte[] tmp = rowb;
@@ -469,7 +469,7 @@ namespace Pngcs {
         void CopyChunks ( PngReader reader , int copy_mask , bool onlyAfterIdat )
         {
             bool idatDone = CurrentChunkGroup >= ChunksList.CHUNK_GROUP_4_IDAT;
-            if( onlyAfterIdat && reader.CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END ) throw new PngjException("tried to copy last chunks but reader has not ended");
+            if( onlyAfterIdat && reader.CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END ) throw new System.Exception("tried to copy last chunks but reader has not ended");
             foreach ( PngChunk chunk in reader.GetChunksList().GetChunks() )
             {
                 int group = chunk.ChunkGroup;
@@ -551,7 +551,7 @@ namespace Pngcs {
         /// <returns></returns>
         public double ComputeCompressionRatio ()
         {
-            if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END ) { throw new PngjException( "must be called after End()" ); }
+            if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END ) { throw new System.Exception( "must be called after End()" ); }
             double compressed = (double)datStream.GetCountFlushed();
             double raw = (ImgInfo.BytesPerRow + 1) * ImgInfo.Rows;
             return compressed / raw;
@@ -566,7 +566,7 @@ namespace Pngcs {
         {
             if( rowNum!=ImgInfo.Rows - 1 )
             {
-                throw new PngjOutputException( "all rows have not been written" );
+                throw new System.IO.IOException( "all rows have not been written" );
             }
             try
             {
@@ -578,7 +578,8 @@ namespace Pngcs {
                 {
                     outputStream.Close();
                 }
-            } catch( IOException ex ) { throw new PngjOutputException(ex); }
+            }
+            catch( IOException ex ) { throw ex; }
         }
 
         /// <summary>

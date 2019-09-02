@@ -126,7 +126,7 @@ namespace Pngcs.Chunks {
             if (list.Count == 0)
                 return null;
             if (list.Count > 1 && (failIfMultiple || !list[0].AllowsMultiple()))
-                throw new PngjException("unexpected multiple chunks id=" + id);
+                throw new System.Exception("unexpected multiple chunks id=" + id);
             return list[list.Count - 1];
         }
             

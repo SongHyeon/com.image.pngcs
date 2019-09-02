@@ -28,7 +28,7 @@ namespace Pngcs.Chunks {
         public override ChunkRaw CreateRawChunk() {
             ChunkRaw c = null;
             if (!ImgInfo.Indexed)
-                throw new PngjException("only indexed images accept a HIST chunk");
+                throw new System.Exception("only indexed images accept a HIST chunk");
 
             c = createEmptyChunk(hist.Length * 2, true);
             for (int i = 0; i < hist.Length; i++) {
@@ -39,7 +39,7 @@ namespace Pngcs.Chunks {
 
         public override void ParseFromRaw(ChunkRaw c) {
             if (!ImgInfo.Indexed)
-                throw new PngjException("only indexed images accept a HIST chunk");
+                throw new System.Exception("only indexed images accept a HIST chunk");
             int nentries = c.Data.Length / 2;
             hist = new int[nentries];
             for (int i = 0; i < hist.Length; i++) {

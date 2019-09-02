@@ -37,7 +37,7 @@ namespace Pngcs.Chunks {
 
         public override void ParseFromRaw(ChunkRaw chunk) {
             if (chunk.Len != 7)
-                throw new PngjException("bad chunk " + chunk);
+                throw new System.Exception("bad chunk " + chunk);
             year = Pngcs.PngHelperInternal.ReadInt2fromBytes(chunk.Data, 0);
             mon = Pngcs.PngHelperInternal.ReadInt1fromByte(chunk.Data, 2);
             day = Pngcs.PngHelperInternal.ReadInt1fromByte(chunk.Data, 3);

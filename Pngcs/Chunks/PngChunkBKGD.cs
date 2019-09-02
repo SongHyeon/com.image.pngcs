@@ -71,7 +71,7 @@ namespace Pngcs.Chunks {
         /// <param name="gray"></param>
         public void SetGray(int gray) {
             if (!ImgInfo.Greyscale)
-                throw new PngjException("only gray images support this");
+                throw new System.Exception("only gray images support this");
             this.gray = gray;
         }
         /// <summary>
@@ -80,7 +80,7 @@ namespace Pngcs.Chunks {
         /// <returns>gray value  (0-255 if bitdept=8)</returns>
         public int GetGray() {
             if (!ImgInfo.Greyscale)
-                throw new PngjException("only gray images support this");
+                throw new System.Exception("only gray images support this");
             return gray;
         }
 
@@ -90,7 +90,7 @@ namespace Pngcs.Chunks {
         /// <param name="index"></param>
         public void SetPaletteIndex(int index) {
             if (!ImgInfo.Indexed)
-                throw new PngjException("only indexed (pallete) images support this");
+                throw new System.Exception("only indexed (pallete) images support this");
             this.paletteIndex = index;
         }
 
@@ -100,7 +100,7 @@ namespace Pngcs.Chunks {
         /// <returns></returns>
         public int GetPaletteIndex() {
             if (!ImgInfo.Indexed)
-                throw new PngjException("only indexed (pallete) images support this");
+                throw new System.Exception("only indexed (pallete) images support this");
             return paletteIndex;
         }
 
@@ -112,7 +112,7 @@ namespace Pngcs.Chunks {
         /// <param name="b"></param>
         public void SetRGB(int r, int g, int b) {
             if (ImgInfo.Greyscale || ImgInfo.Indexed)
-                throw new PngjException("only rgb or rgba images support this");
+                throw new System.Exception("only rgb or rgba images support this");
             red = r;
             green = g;
             blue = b;
@@ -123,7 +123,7 @@ namespace Pngcs.Chunks {
         /// <returns>[r , g, b] array</returns>
         public int[] GetRGB() {
             if (ImgInfo.Greyscale || ImgInfo.Indexed)
-                throw new PngjException("only rgb or rgba images support this");
+                throw new System.Exception("only rgb or rgba images support this");
             return new int[] { red, green, blue };
         }
 

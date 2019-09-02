@@ -20,7 +20,7 @@ namespace Pngcs.Chunks {
 
         public override ChunkRaw CreateRawChunk() {
             if (key.Length == 0)
-                throw new PngjException("Text chunk key must be non empty");
+                throw new System.Exception("Text chunk key must be non empty");
             byte[] b1 = Pngcs.PngHelperInternal.charsetLatin1.GetBytes(key);
             byte[] b2 = Pngcs.PngHelperInternal.charsetLatin1.GetBytes(val);
             ChunkRaw chunk = createEmptyChunk(b1.Length + b2.Length + 1, true);

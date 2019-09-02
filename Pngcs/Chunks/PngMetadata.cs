@@ -39,7 +39,7 @@ namespace Pngcs.Chunks
         public void QueueChunk ( PngChunk chunk , bool lazyOverwrite )
         {
             ChunksListForWrite cl = getChunkListW();
-            if( ReadOnly ) { throw new PngjException( "cannot set chunk : readonly metadata" ); }
+            if( ReadOnly ) { throw new System.Exception( "cannot set chunk : readonly metadata" ); }
             if( lazyOverwrite )
             {
                 ChunkHelper.TrimList( cl.GetQueuedChunks() , new ChunkPredicateEquiv( chunk ) );
@@ -151,7 +151,7 @@ namespace Pngcs.Chunks
         /// <returns>The created and enqueued chunk</returns>
         public PngChunkTextVar SetText ( string key , string val , bool useLatin1 , bool compress )
         {
-            if( compress && useLatin1==false ) { throw new PngjException( "cannot compress non latin text" ); }
+            if( compress && useLatin1==false ) { throw new System.Exception( "cannot compress non latin text" ); }
             PngChunkTextVar c;
             if( useLatin1 )
             {

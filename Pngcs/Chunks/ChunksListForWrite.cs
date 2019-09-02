@@ -56,7 +56,7 @@ namespace Pngcs.Chunks {
             if (list.Count == 0)
                 return null;
             if (list.Count > 1 && (failIfMultiple || !list[0].AllowsMultiple()))
-                throw new PngjException("unexpected multiple chunks id=" + id);
+                throw new System.Exception("unexpected multiple chunks id=" + id);
             return list[list.Count - 1];
         }
         /// <summary>
@@ -108,7 +108,7 @@ namespace Pngcs.Chunks {
             if (currentGroup == CHUNK_GROUP_2_PLTE)
                 return c.Id.Equals(ChunkHelper.PLTE);
             if (currentGroup % 2 == 0)
-                throw new PngjOutputException("bad chunk group?");
+                throw new System.IO.IOException("bad chunk group?");
             int minChunkGroup, maxChunkGroup;
             if (c.mustGoBeforePLTE())
                 minChunkGroup = maxChunkGroup = ChunksList.CHUNK_GROUP_1_AFTERIDHR;
@@ -140,9 +140,9 @@ namespace Pngcs.Chunks {
                 if (!shouldWrite(c, currentGroup))
                     continue;
                 if (ChunkHelper.IsCritical(c.Id) && !c.Id.Equals(ChunkHelper.PLTE))
-                    throw new PngjOutputException("bad chunk queued: " + c);
+                    throw new System.IO.IOException("bad chunk queued: " + c);
                 if (alreadyWrittenKeys.ContainsKey(c.Id) && !c.AllowsMultiple())
-                    throw new PngjOutputException("duplicated chunk does not allow multiple: " + c);
+                    throw new System.IO.IOException("duplicated chunk does not allow multiple: " + c);
                 c.write(os);
                 chunks.Add(c);
                 alreadyWrittenKeys[c.Id] = alreadyWrittenKeys.ContainsKey(c.Id) ? alreadyWrittenKeys[c.Id] + 1 : 1;

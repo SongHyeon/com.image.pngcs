@@ -65,7 +65,7 @@ namespace Pngcs.Chunks {
                 }
             }
             if (t <= 0 || t > c.Data.Length - 2)
-                throw new PngjException("bad sPLT chunk: no separator found");
+                throw new System.Exception("bad sPLT chunk: no separator found");
             PalName = ChunkHelper.ToString(c.Data, 0, t);
             SampleDepth = PngHelperInternal.ReadInt1fromByte(c.Data, t + 1);
             t += 2;

@@ -43,7 +43,7 @@ namespace Pngcs {
                 for (int i = 0; i < nRows; i++) ScanlinesB[i] = new byte[elementsPerRow];
                 Scanlines = null;
             } else
-                throw new PngjExceptionInternal("bad ImageLine initialization");
+                throw new System.Exception("bad ImageLine initialization");
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace Pngcs {
         /// <returns></returns>
         public ImageLine GetImageLineAtMatrixRow(int mrow) {
             if (mrow < 0 || mrow > Nrows)
-                throw new PngjException("Bad row " + mrow + ". Should be positive and less than "
+                throw new System.Exception("Bad row " + mrow + ". Should be positive and less than "
                         + Nrows);
             ImageLine imline = sampleType == ImageLine.ESampleType.INT ? new ImageLine(ImgInfo, sampleType,
                     SamplesUnpacked, Scanlines[mrow], null) : new ImageLine(ImgInfo, sampleType,

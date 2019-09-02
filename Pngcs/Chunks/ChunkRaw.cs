@@ -74,7 +74,7 @@ namespace Pngcs.Chunks
 
         internal void WriteChunk(Stream os) {
             if (IdBytes.Length != 4)
-                throw new PngjOutputException("bad chunkid [" + Pngcs.Chunks.ChunkHelper.ToString(IdBytes) + "]");
+                throw new System.IO.IOException("bad chunkid [" + Pngcs.Chunks.ChunkHelper.ToString(IdBytes) + "]");
             crcval = ComputeCrc();
             Pngcs.PngHelperInternal.WriteInt4(os, Len);
             Pngcs.PngHelperInternal.WriteBytes(os, IdBytes);
@@ -95,7 +95,7 @@ namespace Pngcs.Chunks
             if (checkCrc) {
                 int crc = ComputeCrc();
                 if (crc != crcval)
-                    throw new PngjBadCrcException("crc invalid for chunk " + ToString() + " calc="
+                    throw new System.Exception("crc invalid for chunk " + ToString() + " calc="
                             + crc + " read=" + crcval);
             }
             return Len + 4;

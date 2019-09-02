@@ -67,7 +67,7 @@ namespace Pngcs.Chunks {
         public void SetNentries(int nentries) {
             this.nentries = nentries;
             if (nentries < 1 || nentries > 256)
-                throw new PngjException("invalid pallette - nentries=" + nentries);
+                throw new System.Exception("invalid pallette - nentries=" + nentries);
             if (entries == null || entries.Length != nentries) { // alloc
                 entries = new int[nentries];
             }

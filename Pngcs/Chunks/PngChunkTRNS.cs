@@ -75,7 +75,7 @@ namespace Pngcs.Chunks {
 
         public void SetRGB(int r, int g, int b) {
             if (ImgInfo.Greyscale || ImgInfo.Indexed)
-                throw new PngjException("only rgb or rgba images support this");
+                throw new System.Exception("only rgb or rgba images support this");
             red = r;
             green = g;
             blue = b;
@@ -83,19 +83,19 @@ namespace Pngcs.Chunks {
 
         public int[] GetRGB() {
             if (ImgInfo.Greyscale || ImgInfo.Indexed)
-                throw new PngjException("only rgb or rgba images support this");
+                throw new System.Exception("only rgb or rgba images support this");
             return new int[] { red, green, blue };
         }
 
         public void SetGray(int g) {
             if (!ImgInfo.Greyscale)
-                throw new PngjException("only grayscale images support this");
+                throw new System.Exception("only grayscale images support this");
             gray = g;
         }
 
         public int GetGray() {
             if (!ImgInfo.Greyscale)
-                throw new PngjException("only grayscale images support this");
+                throw new System.Exception("only grayscale images support this");
             return gray;
         }
 
@@ -105,7 +105,7 @@ namespace Pngcs.Chunks {
         /// <param name="palAlpha"></param>
         public void SetPalletteAlpha(int[] palAlpha) {
             if (!ImgInfo.Indexed)
-                throw new PngjException("only indexed images support this");
+                throw new System.Exception("only indexed images support this");
             paletteAlpha = palAlpha;
         }
 
@@ -115,7 +115,7 @@ namespace Pngcs.Chunks {
         /// <param name="palAlphaIndex"></param>
         public void setIndexEntryAsTransparent(int palAlphaIndex) {
             if (!ImgInfo.Indexed)
-                throw new PngjException("only indexed images support this");
+                throw new System.Exception("only indexed images support this");
             paletteAlpha = new int[] { palAlphaIndex + 1 };
             for (int i = 0; i < palAlphaIndex; i++)
                 paletteAlpha[i] = 255;
@@ -128,7 +128,7 @@ namespace Pngcs.Chunks {
         /// <returns></returns>
         public int[] GetPalletteAlpha() {
             if (!ImgInfo.Indexed)
-                throw new PngjException("only indexed images support this");
+                throw new System.Exception("only indexed images support this");
             return paletteAlpha;
         }
     }

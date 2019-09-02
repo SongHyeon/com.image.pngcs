@@ -85,12 +85,12 @@ namespace Pngcs {
                 if (checkCrc) {
                     int crccalc = (int)crcEngine.GetValue();
                     if (lenLastChunk > 0 && crc != crccalc)
-                        throw new PngjBadCrcException("error reading idat; offset: " + offset);
+                        throw new System.Exception("error reading idat; offset: " + offset);
                     crcEngine.Reset();
                 }
                 lenLastChunk = Pngcs.PngHelperInternal.ReadInt4(inputStream);
                 if (lenLastChunk < 0)
-                    throw new PngjInputException("invalid len for chunk: " + lenLastChunk);
+                    throw new System.IO.IOException("invalid len for chunk: " + lenLastChunk);
                 toReadThisChunk = lenLastChunk;
                 Pngcs.PngHelperInternal.ReadBytes(inputStream, idLastChunk, 0, 4);
                 offset += 8;

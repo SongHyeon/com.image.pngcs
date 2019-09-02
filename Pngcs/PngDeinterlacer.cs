@@ -45,7 +45,7 @@
         {
             currRowSubimg = n;
             currRowReal = n * dY + oY;
-            if( currRowReal<0 || currRowReal>=imi.Rows ) { throw new PngjExceptionInternal( "bad row - this should not happen" ); }
+            if( currRowReal<0 || currRowReal>=imi.Rows ) { throw new System.Exception( "bad row - this should not happen" ); }
         }
 
         internal void setPass ( int p )
@@ -95,7 +95,7 @@
                     oY = 1;
                     break;
                 default:
-                    throw new PngjExceptionInternal( $"bad interlace pass { pass }");
+                    throw new System.Exception( $"bad interlace pass { pass }");
             }
             rows = (imi.Rows - oY) / dY + 1;
             if ((rows - 1) * dY + oY >= imi.Rows)

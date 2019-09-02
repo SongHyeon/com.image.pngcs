@@ -15,7 +15,7 @@ namespace Pngcs
         {
             Stream isx = null;
             if( file==null || File.Exists(file)==false )
-                throw new PngjInputException( $"Cannot open file for reading ({ file })" );
+                throw new System.IO.IOException( $"Cannot open file for reading ({ file })" );
             isx = new FileStream( file , FileMode.Open , FileAccess.Read , FileShare.Read );
             return isx;
         }
@@ -24,7 +24,7 @@ namespace Pngcs
         {
             Stream osx = null;
             if( File.Exists(file) && !allowOverwrite )
-                throw new PngjOutputException( $"File already exists ({ file }) and overwrite=false" );
+                throw new System.IO.IOException( $"File already exists ({ file }) and overwrite=false" );
             osx = new FileStream( file , FileMode.Create , FileAccess.Write , FileShare.None );
             return osx;
         }
@@ -33,7 +33,7 @@ namespace Pngcs
         /// Given a filename and a ImageInfo, produces a PngWriter object, ready for writing.</summary>
         /// <param name="fileName">Path of file</param>
         /// <param name="imgInfo">ImageInfo object</param>
-        /// <param name="allowOverwrite">Flag: if false and file exists, a PngjOutputException is thrown</param>
+        /// <param name="allowOverwrite">Flag: if false and file exists, a System.IO.IOException is thrown</param>
         /// <returns>A PngWriter object, ready for writing</returns>
         public static PngWriter CreatePngWriter ( string fileName , ImageInfo imgInfo , bool allowOverwrite )
         {
