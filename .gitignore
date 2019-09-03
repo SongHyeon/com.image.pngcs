@@ -11,3 +11,5 @@
 _ReSharper.*
 *.resharper
 *.zip
+README.md.meta
+LICENSE.txt.meta
