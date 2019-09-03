@@ -1,10 +1,9 @@
-﻿using System.IO;
-
-namespace Pngcs
+﻿namespace Pngcs
 {
     class BufferedStreamFeeder
     {
-        Stream _stream;
+        
+        System.IO.Stream _stream;
         byte[] buf;
         int pendinglen; // bytes read and stored in buf that have not yet still been fed to IBytesConsumer
         int offset;
@@ -13,46 +12,33 @@ namespace Pngcs
         bool failIfNoFeed = false;
         const int DEFAULTSIZE = 8192;
 
-       	public BufferedStreamFeeder ( Stream ist )
+       	public BufferedStreamFeeder ( System.IO.Stream ist )
            : this( ist , DEFAULTSIZE )
         {
 
 	    }
 
-    	public BufferedStreamFeeder ( Stream ist , int bufsize )
+    	public BufferedStreamFeeder ( System.IO.Stream ist , int bufsize )
         {
 	    	this._stream = ist;
 	    	buf = new byte[ bufsize ];
 	    }
 
 
-        /// <summary>
-        /// Stream from which bytes are read
-        /// </summary>
-        public Stream getStream ()
-        {
-            return _stream;
-        }
+        /// <summary> Stream from which bytes are read </summary>
+        public System.IO.Stream getStream () => _stream;
         
         /// <summary>
         /// Feeds bytes to the consumer 
         ///  Returns bytes actually consumed
         ///  This should return 0 only if the stream is EOF or the consumer is done
         /// </summary>
-        /// <param name="consumer"></param>
-        /// <returns></returns>
-        public int feed ( IBytesConsumer consumer )
-        {
-            return feed( consumer , -1 );
-        }
+        public int feed ( IBytesConsumer consumer ) => feed( consumer , -1 );
 
         public int feed ( IBytesConsumer consumer , int maxbytes )
         {
             int n = 0;
-            if( pendinglen==0 )
-            {
-                refillBuffer();
-            }
+            if( pendinglen==0 ) refillBuffer();
             int tofeed = maxbytes>0 && maxbytes<pendinglen ? maxbytes : pendinglen;
             if( tofeed>0 )
             {
@@ -63,18 +49,17 @@ namespace Pngcs
                     pendinglen -= n;
                 }
             }
-            if( n<1 && failIfNoFeed ) { throw new System.IO.IOException( "failed feed bytes" ); }
+            if( n<1 && failIfNoFeed ) { throw new System.IO.IOException("failed feed bytes"); }
             return n;
         }
 
-        public bool feedFixed(IBytesConsumer consumer, int nbytes)
+        public bool feedFixed ( IBytesConsumer consumer , int nbytes )
         {
             int remain = nbytes;
-            while (remain > 0)
+            while( remain>0 )
             {
-                int n = feed(consumer, remain);
-                if (n < 1)
-                    return false;
+                int n = feed( consumer , remain );
+                if( n<1 ) return false;
                 remain -= n;
             }
             return true;
@@ -82,8 +67,7 @@ namespace Pngcs
 
         protected void refillBuffer ()
         {
-            if( pendinglen>0 || eof )
-                return; // only if not pending data
+            if( pendinglen>0 || eof ) return; // only if not pending data
             try
             {
                 // try to read
@@ -94,22 +78,17 @@ namespace Pngcs
                     close();
                 }
             }
-            catch( IOException e ) { throw e; }
+            catch( System.IO.IOException e ) { throw e; }
         }
 
         public bool hasMoreToFeed ()
         {
-            if( eof )
-                return pendinglen>0;
-            else
-                refillBuffer();
-            return pendinglen > 0;
+            if( eof ) return pendinglen>0;
+            else refillBuffer();
+            return pendinglen>0;
         }
 
-        public void setCloseStream ( bool closeStream )
-        {
-            this.closeStream = closeStream;
-        }
+        public void setCloseStream ( bool closeStream ) => this.closeStream = closeStream;
 
         public void close ()
         {
@@ -120,32 +99,21 @@ namespace Pngcs
             try
             {
                 if( _stream!=null && closeStream )
-                {
                     _stream.Close();
-                }
             }
-            catch( System.Exception e )
-            {
-                PngHelperInternal.Log( "Exception closing stream" , e );
-            }
+            catch( System.Exception e ) { PngHelperInternal.Log( "Exception closing stream" , e ); }
             _stream = null;
         }
 
-       	public void setInputStream ( Stream ist )// to reuse this object
+       	public void setInputStream ( System.IO.Stream ist )// to reuse this object
         {
 		    this._stream = ist;
 		    eof = false;
 	    }
 
-        public bool isEof ()
-        {
-            return eof;
-        }
+        public bool isEof () => eof;
 
-        public void setFailIfNoFeed ( bool failIfNoFeed )
-        {
-            this.failIfNoFeed = failIfNoFeed;
-        }
+        public void setFailIfNoFeed ( bool failIfNoFeed ) => this.failIfNoFeed = failIfNoFeed;
 
     }
 }

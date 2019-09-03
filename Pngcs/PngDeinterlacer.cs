@@ -26,7 +26,7 @@
                 packedShift = imi.BitDepth;
                 if( imi.BitDepth==1 )
                     packedMask = 0x80;
-                else if (imi.BitDepth == 2)
+                else if( imi.BitDepth==2)
                     packedMask = 0xc0;
                 else
                     packedMask = 0xf0;
@@ -98,12 +98,12 @@
                     throw new System.Exception( $"bad interlace pass { pass }");
             }
             rows = (imi.Rows - oY) / dY + 1;
-            if ((rows - 1) * dY + oY >= imi.Rows)
+            if( (rows - 1) * dY + oY>=imi.Rows)
                 rows--; // can be 0
             cols = (imi.Cols - oX) / dX + 1;
-            if ((cols - 1) * dX + oX >= imi.Cols)
+            if( (cols - 1) * dX + oX>=imi.Cols)
                 cols--; // can be 0
-            if (cols == 0)
+            if( cols==0)
                 rows = 0; // really...
             dXsamples = dX * imi.Channels;
             oXsamples = oX * imi.Channels;
@@ -159,9 +159,9 @@
         // yes, duplication of code is evil, normally
         internal void deinterlaceByte ( byte[] src , byte[] dst , bool readInPackedFormat )
         {
-            if (!(imi.Packed && readInPackedFormat))
-                for (int i = 0, j = oXsamples; i < cols * imi.Channels; i += imi.Channels, j += dXsamples)
-                    for (int k = 0; k < imi.Channels; k++)
+            if( !(imi.Packed && readInPackedFormat))
+                for (int i = 0, j = oXsamples; i<cols * imi.Channels; i += imi.Channels, j += dXsamples)
+                    for (int k = 0; k<imi.Channels; k++)
                         dst[j + k] = src[i + k];
             else
                 deinterlacePackedByte(src, dst);
@@ -180,18 +180,18 @@
             {
                 spos = i / packedValsPerPixel;
                 smod += 1;
-                if (smod >= packedValsPerPixel)
+                if( smod>=packedValsPerPixel)
                     smod = 0;
                 smask >>= packedShift; // the source mask cycles
-                if (smod == 0)
+                if( smod==0)
                     smask = packedMask;
                 tpos = j / packedValsPerPixel;
                 tmod = j % packedValsPerPixel;
                 p = src[spos] & smask;
                 d = tmod - smod;
-                if (d > 0)
+                if( d>0)
                     p >>= (d * packedShift);
-                else if (d < 0)
+                else if( d<0)
                     p <<= ((-d) * packedShift);
                 dst[tpos] |= (byte)p;
             }

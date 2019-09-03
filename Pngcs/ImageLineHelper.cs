@@ -1,23 +1,12 @@
 namespace Pngcs
 {
-
-    using Pngcs.Chunks;
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.IO;
-    using System.Runtime.CompilerServices;
-
     /// <summary>
     /// Bunch of utility static methods to process/analyze an image line. 
     /// 
     /// Not essential at all, some methods are probably to be removed if future releases.
     /// 
     /// TODO: document this better
-    /// 
     /// </summary>
-    ///
     public class ImageLineHelper
     {
 
@@ -29,7 +18,7 @@ namespace Pngcs
         /// <param name="trns">TRNS chunk (optional)</param>
         /// <param name="buf">Preallocated array, optional</param>
         /// <returns>R G B (one byte per sample)</returns>
-        public static int[] Palette2rgb ( ImageLine line , PngChunkPLTE pal , PngChunkTRNS trns , int[] buf )
+        public static int[] Palette2rgb ( ImageLine line , Chunks.PngChunkPLTE pal , Chunks.PngChunkTRNS trns , int[] buf )
         {
             bool isalpha = trns!=null;
             int channels = isalpha ? 4 : 3;
@@ -42,32 +31,32 @@ namespace Pngcs
             {
                 line = line.unpackToNewImageLine();
             }
-            bool isbyte = line.SampleType == Pngcs.ImageLine.ESampleType.BYTE;
-            int nindexesWithAlpha = trns != null ? trns.GetPalletteAlpha().Length : 0;
+            bool isbyte = line.SampleType==Pngcs.ImageLine.ESampleType.BYTE;
+            int nindexesWithAlpha = trns!=null ? trns.GetPalletteAlpha().Length : 0;
             for( int c=0 ; c<line.ImgInfo.Cols ; c++ )
             {
                 int index = isbyte ? (line.ScanlineB[c] & 0xFF) : line.Scanline[c];
                 pal.GetEntryRgb( index , buf , c * channels );
                 if( isalpha )
                 {
-                    int alpha = index < nindexesWithAlpha ? trns.GetPalletteAlpha()[index] : 255;
+                    int alpha = index<nindexesWithAlpha ? trns.GetPalletteAlpha()[index] : 255;
                     buf[ c * channels + 3 ] = alpha;
                 }
             }
             return buf;
         }
 
-        public static int[] Palette2rgb ( ImageLine line , PngChunkPLTE pal , int[] buf ) => Palette2rgb( line , pal , null , buf );
+        public static int[] Palette2rgb ( ImageLine line , Chunks.PngChunkPLTE pal , int[] buf ) => Palette2rgb( line , pal , null , buf );
 
         public static int ToARGB8 ( int r , int g , int b )
         {
             unchecked
             {
-                return ((int)(0xFF000000)) | ((r) << 16) | ((g) << 8) | (b);
+                return ((int)(0xFF000000)) | ((r)<<16) | ((g)<<8) | (b);
             }
         }
 
-        public static int ToARGB8 ( int r , int g , int b , int a ) => ((a) << 24) | ((r) << 16) | ((g) << 8) | (b);
+        public static int ToARGB8 ( int r , int g , int b , int a ) => ((a)<<24) | ((r)<<16) | ((g)<<8) | (b);
 
          public static int ToARGB8 ( int[] buff , int offset , bool alpha )
          {
@@ -85,23 +74,23 @@ namespace Pngcs
 
         public static void FromARGB8 ( int val , int[] buff , int offset , bool alpha )
         {
-            buff[ offset++ ] = ((val >> 16) & 0xFF);
-            buff[ offset++ ] = ((val >> 8) & 0xFF);
+            buff[ offset++ ] = ((val>>16) & 0xFF);
+            buff[ offset++ ] = ((val>>8) & 0xFF);
             buff[ offset ] = (val & 0xFF);
             if( alpha )
             {
-                buff[ offset + 1 ] = ((val >> 24) & 0xFF);
+                buff[ offset + 1 ] = ((val>>24) & 0xFF);
             }
         }
 
         public static void FromARGB8 ( int val , byte[] buff , int offset , bool alpha )
         {
-            buff[ offset++ ] = (byte)((val >> 16) & 0xFF);
-            buff[ offset++ ] = (byte)((val >> 8) & 0xFF);
+            buff[ offset++ ] = (byte)((val>>16) & 0xFF);
+            buff[ offset++ ] = (byte)((val>>8) & 0xFF);
             buff[ offset ] = (byte)(val & 0xFF);
             if( alpha )
             {
-                buff[ offset + 1 ] = (byte)((val >> 24) & 0xFF);
+                buff[ offset + 1 ] = (byte)((val>>24) & 0xFF);
             }
         }
 
@@ -206,16 +195,16 @@ namespace Pngcs
         }
 
 
-        public static int ClampTo_0_255 ( int i ) => i > 255 ? 255 : (i < 0 ? 0 : i);
+        public static int ClampTo_0_255 ( int i ) => i>255 ? 255 : (i<0 ? 0 : i);
 
         /**
          * [0,1)
          */
-        public static double ClampDouble ( double i ) => i < 0 ? 0 : (i >= 1 ? 0.999999 : i);
+        public static double ClampDouble ( double i ) => i<0 ? 0 : (i>=1 ? 0.999999 : i);
 
-        public static int ClampTo_0_65535 ( int i ) => i > 65535 ? 65535 : (i < 0 ? 0 : i);
+        public static int ClampTo_0_65535 ( int i ) => i>65535 ? 65535 : (i<0 ? 0 : i);
 
-        public static int ClampTo_128_127 ( int x ) => x > 127 ? 127 : (x < -128 ? -128 : x);
+        public static int ClampTo_128_127 ( int x ) => x>127 ? 127 : (x<-128 ? -128 : x);
 
         public static int[] Unpack ( ImageInfo imgInfo , int[] src , int[] dst , bool scale )
         {
@@ -231,7 +220,7 @@ namespace Pngcs
             }
             else
             {
-                Array.Copy( src , 0 , dst , 0 , len0 );
+                System.Array.Copy( src , 0 , dst , 0 , len0 );
             }
             return dst;
         }
@@ -250,7 +239,7 @@ namespace Pngcs
             }
             else
             {
-                Array.Copy( src , 0 , dst , 0 , len0 );
+                System.Array.Copy( src , 0 , dst , 0 , len0 );
             }
             return dst;
         }
@@ -268,7 +257,7 @@ namespace Pngcs
             }
             else
             {
-                Array.Copy( src , 0 , dst , 0 , len0 );
+                System.Array.Copy( src , 0 , dst , 0 , len0 );
             }
             return dst;
         }
@@ -286,7 +275,7 @@ namespace Pngcs
             }
             else
             {
-                Array.Copy( src , 0 , dst , 0 , len0 );
+                System.Array.Copy( src , 0 , dst , 0 , len0 );
             }
             return dst;
         }

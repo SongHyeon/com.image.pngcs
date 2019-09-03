@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 
 namespace Pngcs.Chunks
 {
@@ -207,7 +206,7 @@ namespace Pngcs.Chunks
         {
             List<PngChunkTextVar> li = GetTxtsForKey( key );
             if( li.Count==0 ) { return ""; }
-            var sb = new StringBuilder();
+            var sb = new System.Text.StringBuilder();
             foreach( PngChunkTextVar c in li )
             {
                 sb.Append( c.GetVal() );

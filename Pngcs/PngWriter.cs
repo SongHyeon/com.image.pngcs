@@ -1,28 +1,21 @@
-namespace Pngcs {
+using System.Collections.Generic;
 
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.IO;
+using Pngcs.Chunks;
+using Pngcs.Zlib;
 
-    using System.Runtime.CompilerServices;
-    using Chunks;
-    using Pngcs.Zlib;
-
+namespace Pngcs
+{
     /// <summary>
     ///  Writes a PNG image, line by line.
     /// </summary>
-    public class PngWriter {
-        /// <summary>
-        /// Basic image info, inmutable
-        /// </summary>
+    public class PngWriter
+    {
+
+        /// <summary> Basic image info, inmutable </summary>
         public readonly ImageInfo ImgInfo;
 
-        /// <summary>
-        /// filename, or description - merely informative, can be empty
-        /// </summary>
-        protected readonly String filename;
+        /// <summary> filename, or description - merely informative, can be empty </summary>
+        protected readonly string filename;
 
         FilterWriteStrategy filterStrat;
 
@@ -40,48 +33,35 @@ namespace Pngcs {
         /// 9 is the maximum compression
         /// </remarks>
         public int CompLevel { get; set; }
-        /// <summary>
-        /// true: closes stream after ending write
-        /// </summary>
-        public bool ShouldCloseStream { get; set; }
-        /// <summary>
-        /// Maximum size of IDAT chunks
-        /// </summary>
-        /// <remarks>
-        /// 0=use default (PngIDatChunkOutputStream 32768)
-        /// </remarks>
-        public int IdatMaxSize { get; set; } // 
 
-        /// <summary>
-        /// A high level wrapper of a ChunksList : list of written/queued chunks
-        /// </summary>
+        /// <summary> true: closes stream after ending write </summary>
+        public bool ShouldCloseStream { get; set; }
+
+        /// <summary> Maximum size of IDAT chunks </summary>
+        /// <remarks> 0=use default (PngIDatChunkOutputStream 32768) </remarks>
+        public int IdatMaxSize { get; set; }
+
+        /// <summary> A high level wrapper of a ChunksList : list of written/queued chunks </summary>
         readonly PngMetadata metadata;
-        /// <summary>
-        /// written/queued chunks
-        /// </summary>
+
+        /// <summary> written/queued chunks </summary>
         readonly ChunksListForWrite chunksList;
 
-        /// <summary>
-        /// raw current row, as array of bytes,counting from 1 (index 0 is reserved for filter type)
-        /// </summary>
+        /// <summary> raw current row, as array of bytes,counting from 1 (index 0 is reserved for filter type) </summary>
         protected byte[] rowb;
-        /// <summary>
-        /// previuos raw row
-        /// </summary>
+
+        /// <summary> previuos raw row </summary>
         protected byte[] rowbprev; // rowb previous
-        /// <summary>
-        /// raw current row, after filtered
-        /// </summary>
+
+        /// <summary> raw current row, after filtered </summary>
         protected byte[] rowbfilter;
 
-        /// <summary>
-        /// number of chunk group (0-6) last writen, or currently writing
-        /// </summary>
+        /// <summary> number of chunk group (0-6) last writen, or currently writing </summary>
         /// <remarks>see ChunksList.CHUNK_GROUP_NNN</remarks>
         public int CurrentChunkGroup { get; private set; }
 
         int rowNum = -1; // current line number
-        readonly Stream outputStream;
+        readonly System.IO.Stream outputStream;
 
         PngIDatChunkOutputStream datStream;
         AZlibOutputStream datStreamDeflated;
@@ -97,8 +77,10 @@ namespace Pngcs {
         /// </summary>
         /// <param name="outputStream"></param>
         /// <param name="imgInfo"></param>
-        public PngWriter(Stream outputStream, ImageInfo imgInfo)
-            : this(outputStream, imgInfo, "[NO FILENAME AVAILABLE]") {
+        public PngWriter ( System.IO.Stream outputStream , ImageInfo imgInfo )
+            : this( outputStream , imgInfo , "[NO FILENAME AVAILABLE]" )
+        {
+
         }
 
         /// <summary>
@@ -113,9 +95,9 @@ namespace Pngcs {
         /// <param name="outputStream">Opened stream for binary writing</param>
         /// <param name="imgInfo">Basic image parameters</param>
         /// <param name="filename">Optional, can be the filename or a description.</param>
-        public PngWriter(Stream outputStream, ImageInfo imgInfo,
-                String filename) {
-            this.filename = (filename == null) ? "" : filename;
+        public PngWriter ( System.IO.Stream outputStream , ImageInfo imgInfo , string filename )
+        {
+            this.filename = filename==null ? "" : filename;
             this.outputStream = outputStream;
             this.ImgInfo = imgInfo;
             // defaults settings
@@ -148,12 +130,12 @@ namespace Pngcs {
 
         void reportResultsForFilter ( int rown , FilterType type , bool tentative )
         {
-            for (int i = 0; i < histox.Length; i++)
+            for (int i = 0; i<histox.Length; i++)
                 histox[i] = 0;
             int s = 0, v;
-            for (int i = 1; i <= ImgInfo.BytesPerRow; i++) {
+            for (int i = 1; i<=ImgInfo.BytesPerRow; i++) {
                 v = rowbfilter[i];
-                if (v < 0)
+                if( v<0)
                     s -= (int)v;
                 else
                     s += (int)v;
@@ -175,9 +157,9 @@ namespace Pngcs {
             nw = chunksList.writeChunks(outputStream, CurrentChunkGroup);
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_2_PLTE;
             nw = chunksList.writeChunks(outputStream, CurrentChunkGroup);
-            if (nw > 0 && ImgInfo.Greyscale)
+            if( nw>0 && ImgInfo.Greyscale)
                 throw new System.IO.IOException("cannot write palette for this format");
-            if (nw == 0 && ImgInfo.Indexed)
+            if( nw==0 && ImgInfo.Indexed)
                 throw new System.IO.IOException("missing palette");
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_3_AFTERPLTE;
             nw = chunksList.writeChunks(outputStream, CurrentChunkGroup);
@@ -191,7 +173,7 @@ namespace Pngcs {
             chunksList.writeChunks(outputStream, CurrentChunkGroup);
             // should not be unwriten chunks
             List<PngChunk> pending = chunksList.GetQueuedChunks();
-            if (pending.Count > 0)
+            if( pending.Count>0)
                 throw new System.IO.IOException(pending.Count + " chunks were not written! Eg: " + pending[0].ToString());
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_6_END;
         }
@@ -204,18 +186,18 @@ namespace Pngcs {
         void WriteSignatureAndIHDR ()
         {
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_0_IDHR;
-            PngHelperInternal.WriteBytes(outputStream, Pngcs.PngHelperInternal.PNG_ID_SIGNATURE); // signature
+            PngHelperInternal.WriteBytes(outputStream, PngHelperInternal.PNG_ID_SIGNATURE); // signature
             PngChunkIHDR ihdr = new PngChunkIHDR(ImgInfo);
             // http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html
             ihdr.Cols = ImgInfo.Cols;
             ihdr.Rows = ImgInfo.Rows;
             ihdr.Bitspc = ImgInfo.BitDepth;
             int colormodel = 0;
-            if (ImgInfo.Alpha)
+            if( ImgInfo.Alpha)
                 colormodel += 0x04;
-            if (ImgInfo.Indexed)
+            if( ImgInfo.Indexed)
                 colormodel += 0x01;
-            if (!ImgInfo.Greyscale)
+            if( !ImgInfo.Greyscale)
                 colormodel += 0x02;
             ihdr.Colormodel = colormodel;
             ihdr.Compmeth = 0; // compression method 0=deflate
@@ -247,14 +229,14 @@ namespace Pngcs {
             else
             {
                 // perhaps we need to pack?
-                if (row.Length >= ImgInfo.SamplesPerRow && needsPack)
+                if( row.Length>=ImgInfo.SamplesPerRow && needsPack)
                     ImageLine.packInplaceByte(ImgInfo, row, row, false); // row is packed in place!
-                if (ImgInfo.BitDepth <= 8) {
-                    for (int i = 0, j = 1; i < ImgInfo.SamplesPerRowPacked; i++) {
+                if( ImgInfo.BitDepth<=8) {
+                    for (int i = 0, j = 1; i<ImgInfo.SamplesPerRowPacked; i++) {
                         rowb[j++] = row[i];
                     }
                 } else { // 16 bitspc
-                    for (int i = 0, j = 1; i < ImgInfo.SamplesPerRowPacked; i++) {
+                    for (int i = 0, j = 1; i<ImgInfo.SamplesPerRowPacked; i++) {
                         rowb[j++] = row[i];
                         rowb[j++] = 0;
                     }
@@ -279,7 +261,7 @@ namespace Pngcs {
                 else
                 {// 16 bitspc
                     foreach (int x in row) { // optimized
-                        rowb[j++] = (byte)(x >> 8);
+                        rowb[j++] = (byte)(x>>8);
                         rowb[j++] = (byte)(x); 
                     }
                 }
@@ -304,7 +286,7 @@ namespace Pngcs {
                     // 16 bitspc
                     for( int i=0 , j=1 ; i<samplesPerRowPacked ; i++ )
                     {
-                        rowb[j++] = (byte)(row[i] >> 8);
+                        rowb[j++] = (byte)(row[i]>>8);
                         rowb[j++] = (byte)(row[i]);
                     }
                 }
@@ -385,7 +367,7 @@ namespace Pngcs {
             for( j=1-bytesPixel , i=1 ; i<=bytesPerRow ; i++ , j++ )
             {
                 rowbfilter[i] = (byte)(
-                    rowb[i] - ( (rowbprev[i]) + (j > 0 ? rowb[j] : (byte)0) )/2
+                    rowb[i] - ( (rowbprev[i]) + (j>0 ? rowb[j] : (byte)0) )/2
                 );
             }
         }
@@ -411,7 +393,7 @@ namespace Pngcs {
                     rowb[i] - PngHelperInternal.FilterPaethPredictor(
                         j>0
                         ? rowb[j]
-                        : (byte)0,rowbprev[i], j > 0 ? rowbprev[j] : (byte)0
+                        : (byte)0,rowbprev[i], j>0 ? rowbprev[j] : (byte)0
                     )
                 );
             }
@@ -468,7 +450,7 @@ namespace Pngcs {
         /// </summary>
         void CopyChunks ( PngReader reader , int copy_mask , bool onlyAfterIdat )
         {
-            bool idatDone = CurrentChunkGroup >= ChunksList.CHUNK_GROUP_4_IDAT;
+            bool idatDone = CurrentChunkGroup>=ChunksList.CHUNK_GROUP_4_IDAT;
             if( onlyAfterIdat && reader.CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END ) throw new System.Exception("tried to copy last chunks but reader has not ended");
             foreach ( PngChunk chunk in reader.GetChunksList().GetChunks() )
             {
@@ -548,7 +530,6 @@ namespace Pngcs {
         /// </summary>
         /// <remarks>Actually: compressed size = total size of IDAT data , raw size = uncompressed pixel bytes = rows * (bytesPerRow + 1)
         /// </remarks>
-        /// <returns></returns>
         public double ComputeCompressionRatio ()
         {
             if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END ) { throw new System.Exception( "must be called after End()" ); }
@@ -564,10 +545,7 @@ namespace Pngcs {
         /// </summary>  
         public void End ()
         {
-            if( rowNum!=ImgInfo.Rows - 1 )
-            {
-                throw new System.IO.IOException( "all rows have not been written" );
-            }
+            if( rowNum!=ImgInfo.Rows-1 ) throw new System.IO.IOException( "all rows have not been written" );
             try
             {
                 datStreamDeflated.Close();
@@ -579,13 +557,13 @@ namespace Pngcs {
                     outputStream.Close();
                 }
             }
-            catch( IOException ex ) { throw ex; }
+            catch( System.IO.IOException ex ) { throw ex; }
         }
 
         /// <summary>
-        ///  Filename or description, from the optional constructor argument.
+        /// Filename or description, from the optional constructor argument.
         /// </summary>
-        public String GetFilename() => filename;
+        public string GetFilename() => filename;
 
 
         /// <summary>

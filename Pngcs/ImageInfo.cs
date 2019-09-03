@@ -1,5 +1,3 @@
-using System;
-
 namespace Pngcs
 {
     /// <summary>
@@ -124,7 +122,7 @@ namespace Pngcs
             this.Channels = (grayscale || palette) ? ((alpha) ? 2 : 1) : ((alpha) ? 4 : 3);
             // http://www.w3.org/TR/PNG/#11IHDR
             this.BitDepth = bitdepth;
-            this.Packed = bitdepth < 8;
+            this.Packed = bitdepth<8;
             this.BitspPixel = (Channels * this.BitDepth);
             this.BytesPixel = (BitspPixel + 7) / 8;
             this.BytesPerRow = (BitspPixel * cols + 7) / 8;
@@ -150,14 +148,8 @@ namespace Pngcs
             if( rows<1 || rows>MAX_COLS_ROWS_VAL ) throw new System.Exception( $"invalid rows={ rows } ???" );
         }
 
-        /// <summary>
-        /// General information, for debugging
-        /// </summary>
-        /// <returns>Summary</returns>
-        public override string ToString ()
-        {
-            return $"ImageInfo [cols={ Cols }, rows={ Rows }, bitDepth={ BitDepth }, channels={ Channels }, bitspPixel={ BitspPixel }, bytesPixel={ BytesPixel }, bytesPerRow={ BytesPerRow }, samplesPerRow={ SamplesPerRow }, samplesPerRowP={ SamplesPerRowPacked }, alpha={ Alpha }, greyscale={ Greyscale }, indexed={ Indexed }, packed={ Packed }]";
-        }
+        /// <summary> General information, for debugging </summary>
+        public override string ToString () => $"ImageInfo [cols={ Cols }, rows={ Rows }, bitDepth={ BitDepth }, channels={ Channels }, bitspPixel={ BitspPixel }, bytesPixel={ BytesPixel }, bytesPerRow={ BytesPerRow }, samplesPerRow={ SamplesPerRow }, samplesPerRowP={ SamplesPerRowPacked }, alpha={ Alpha }, greyscale={ Greyscale }, indexed={ Indexed }, packed={ Packed }]";
 
         public override int GetHashCode ()
         {
@@ -173,11 +165,11 @@ namespace Pngcs
             return result;
         }
 
-        public override bool Equals ( Object obj )
+        public override bool Equals ( object obj )
         {
-            if( (Object)this==obj ) return true;
+            if( (object)this==obj ) return true;
             if( obj==null ) return false;
-            if( (Object)GetType()!=(Object)obj.GetType() ) return false;
+            if( (object)GetType()!=(object)obj.GetType() ) return false;
             ImageInfo other = (ImageInfo)obj;
             if( Alpha!=other.Alpha ) return false;
             if( BitDepth!=other.BitDepth ) return false;

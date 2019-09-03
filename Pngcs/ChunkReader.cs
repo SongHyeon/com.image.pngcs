@@ -25,7 +25,7 @@
             
             this.mode = mode;
             chunkRaw = new Chunks.ChunkRaw( clen , id , mode==EChunkReaderMode.BUFFER );
-            chunkRaw.setOffset( offsetInPng );
+            chunkRaw.offset = offsetInPng;
             this.crcCheck = mode==EChunkReaderMode.SKIP ? false : true;// can be changed with setter
         }
 
