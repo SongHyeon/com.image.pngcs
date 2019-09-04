@@ -56,7 +56,7 @@ namespace Pngcs
                 int b3 = mask0.ReadByte();
                 int b4 = mask0.ReadByte();
                 if( b1==-1 || b2==-1 || b3==-1 || b4==-1 ) return -1;
-                return b1<<24 + b2<<16 + b3<<8 + b4;
+                return (b1<<24) + (b2<<16) + (b3<<8) + b4;
             }
             catch( IO.IOException e ) { throw new IO.IOException("error reading readInt4", e); }
         }
