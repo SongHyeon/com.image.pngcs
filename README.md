@@ -8,9 +8,9 @@ API:
 - Color[] PNG.ReadColors
 - Color[] PNG.ReadColorsAsync (experimental)
 - PNG.Write
-- PNG.WriteAsync
+- PNG.WriteAsync (experimental)
 - PNG.WriteLargeAsync (experimental)
-- PNG.WriteGrayscaleAsync
+- PNG.WriteGrayscaleAsync (experimental)
 #
 TODO:
 - PNG.Read creating Texture2D in every useful TextureFormat, infered from file (partially done already)
