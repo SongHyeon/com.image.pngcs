@@ -605,6 +605,27 @@ namespace Pngcs.Unity
             return results;
         }
 
+        /// <summary> Creates ImageInfo object based on given png </summary>
+        public static ImageInfo ReadImageInfo
+        (
+            string filePath
+        )
+        {
+            ImageInfo imageInfo = null;
+            PngReader reader = null;
+            try
+            {
+                reader = FileHelper.CreatePngReader( filePath );
+                imageInfo = reader.ImgInfo;
+            }
+            catch ( System.Exception ex ) { Debug.LogException( ex ); }
+            finally
+            {
+                if( reader!=null ) reader.End();
+            }
+            return imageInfo;
+        }
+
         /// <summary> Texture2D's rows start from the bottom while PNG from the top. Hence inverted y/row. </summary>
         public static int IndexPngToTexture ( int row , int col , int numRows , int numCols ) => numCols * ( numRows - 1 - row ) + col;
 
