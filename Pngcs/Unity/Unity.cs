@@ -697,6 +697,7 @@ namespace Pngcs.Unity
                 case 161: return TextureFormat.R16;
                 //case 161: return TextureFormat.RHalf;//no way to infer between R16 and RHalf
                 case 163: return TextureFormat.RGB565;
+                case 164: return TextureFormat.RGBAHalf;
                 case 321: return TextureFormat.RFloat;
                 default: throw new System.NotImplementedException( $"bit depth '{ bitDepth }' for '{ channels }' channels not implemented" );
             }
