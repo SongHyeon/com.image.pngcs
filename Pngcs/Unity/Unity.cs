@@ -195,7 +195,7 @@ namespace Pngcs.Unity
                         for( int col=0 ; col<numCols ; col++ )
                         {
                             RGBA rgba = ToRGBA( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] , bitDepth );
-                            ImageLineHelper.SetPixel( imageline , col , rgba.r , rgba.g , rgba.b , rgba.a );
+                            ImageLineHelper.SetPixel( imageline , col , rgba.R , rgba.G , rgba.B , rgba.A );
                         }
                     }
                     else
@@ -256,7 +256,7 @@ namespace Pngcs.Unity
                     for( int col=0 ; col<numCols ; col++ )
                     {
                         RGBA rgba = ToRGBA( pixels[col] , bitDepth );
-                        ImageLineHelper.SetPixel( line , col , rgba.r , rgba.g , rgba.b , rgba.a );
+                        ImageLineHelper.SetPixel( line , col , rgba.R , rgba.G , rgba.B , rgba.A );
                     }
                 }
                 else
@@ -559,7 +559,7 @@ namespace Pngcs.Unity
             int bitDepth = info.BitDepth;
             if( !info.Indexed )
             {
-                if( bitDepth>=8 )
+                if( !info.Packed )
                 {
                     for( int row=0 ; row<results.height ; row++ )
                     {
@@ -572,48 +572,43 @@ namespace Pngcs.Unity
                             if( channels==4 )
                             {
                                 rgba = new RGBA{
-                                    r = scanline[i] ,
-                                    g = scanline[i+1] ,
-                                    b = scanline[i+2] ,
-                                    a = scanline[i+3]
+                                    R = scanline[i] ,
+                                    G = scanline[i+1] ,
+                                    B = scanline[i+2] ,
+                                    A = scanline[i+3]
                                 };
                             }
                             else if( channels==3 )
                             {
                                 rgba = new RGBA{
-                                    r = scanline[i] ,
-                                    g = scanline[i+1] ,
-                                    b = scanline[i+2] ,
-                                    a = int.MaxValue
+                                    R = scanline[i] ,
+                                    G = scanline[i+1] ,
+                                    B = scanline[i+2] ,
+                                    A = int.MaxValue
                                 };
                             }
                             else if( channels==2 )
                             {
+                                int val = scanline[i+1];
+                                int a = scanline[i];
                                 rgba = new RGBA{
-                                    r = scanline[i+1] ,
-                                    g = scanline[i+1] ,
-                                    b = scanline[i+1] ,
-                                    a = scanline[i]
+                                    R = val , G = val , B = val ,
+                                    A = a
                                 };
                             }
                             else if( channels==1 )
                             {
                                 int val = scanline[i];
-                                rgba = new RGBA{
-                                    r = val ,
-                                    g = val ,
-                                    b = val ,
-                                    a = val
-                                };
+                                rgba = new RGBA{ R = val , G = val , B = val , A = val };
                             }
                             else { throw new System.Exception( $"{channels} channels not implemented" ); }
 
                             float max = GetBitDepthMaxValue( bitDepth );
                             Color color = new Color{
-                                r = (float)rgba.r / max ,
-                                g = (float)rgba.g / max ,
-                                b = (float)rgba.b / max ,
-                                a = (float)rgba.a / max
+                                r = (float)rgba.R / max ,
+                                g = (float)rgba.G / max ,
+                                b = (float)rgba.B / max ,
+                                a = (float)rgba.A / max
                             };
                             results.pixels[ IndexPngToTexture( row , col , results.height , results.width ) ] = color;
                         }
@@ -621,23 +616,34 @@ namespace Pngcs.Unity
                 }
                 else
                 {
-                    if( channels!=1 ) throw new System.Exception( $"{channels} channels not implemented" );
-                    for( int row=0 ; row<results.height ; row++ )
+                    if( bitDepth==4 )
                     {
-                        ImageLine imageLine = reader.ReadRowByte( row );
-                        var scanline = imageLine.ScanlineB;
-                        for( int col=0 ; col<results.width/8 ; col++ )
+                        throw new System.Exception( $"bit depth {bitDepth} not implemented" );
+                    }
+                    else if( bitDepth==2 )
+                    {
+                        throw new System.Exception( $"bit depth {bitDepth} not implemented" );
+                    }
+                    else if( bitDepth==1 )
+                    {
+                        for( int row=0 ; row<results.height ; row++ )
                         {
-                            for( int bit=0 ; bit<8 ; bit++ )
+                            ImageLine imageLine = reader.ReadRowByte( row );
+                            var scanline = imageLine.ScanlineB;
+                            for( int col=0 ; col<results.width/8 ; col++ )
                             {
-                                Color color = new Color{
-                                    r = BIT( bit , scanline[ col ] )
-                                };
-                                int BIT ( int index , byte b ) => (b&(1<<index))!=0 ? 1<<index : 0;
-                                results.pixels[ IndexPngToTexture( row , col*8+bit , results.height , results.width ) ] = color;
+                                for( int bit=0 ; bit<8 ; bit++ )
+                                {
+                                    Color color = new Color{
+                                        r = BIT( bit , scanline[ col ] )
+                                    };
+                                    int BIT ( int index , byte b ) => (b&(1<<index))!=0 ? 1<<index : 0;
+                                    results.pixels[ IndexPngToTexture( row , col*8+bit , results.height , results.width ) ] = color;
+                                }
                             }
                         }
                     }
+                    else throw new System.Exception( $"bit depth {bitDepth} not implemented" );
                 }
             }
             else { throw new System.NotImplementedException( "indexed png not implemented" ); }
@@ -759,10 +765,10 @@ namespace Pngcs.Unity
         {
             float max = GetBitDepthMaxValue( bitDepth );
             return new RGBA {
-                r = (int)( color.r * max ) ,
-                g = (int)( color.g * max ) ,
-                b = (int)( color.b * max ) ,
-                a = (int)( color.a * max )
+                R = (int)( color.r * max ) ,
+                G = (int)( color.g * max ) ,
+                B = (int)( color.b * max ) ,
+                A = (int)( color.a * max )
             };
         }
 
@@ -782,7 +788,7 @@ namespace Pngcs.Unity
 
         public struct RGB { public int r, g, b; }
 
-        public struct RGBA { public int r, g, b, a; }
+        public struct RGBA { public int R, G, B, A; }
 
         public struct ReadColorsResult
         {
