@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.IO;
-
+using IO = System.IO;
 using Pngcs.Chunks;
-using Pngcs.Zlib;
-
 
 namespace Pngcs
 {
@@ -28,11 +25,11 @@ namespace Pngcs
     /// 5. Read of the last row automatically loads the trailing chunks, and ends the reader.
     /// 
     /// 6. End() forcibly finishes/aborts the reading and closes the stream
-    ///
     /// </remarks>
     public class PngReader
         : System.IDisposable
     {
+        
         /// <summary>
         /// Basic image info, inmutable
         /// </summary>
@@ -86,16 +83,16 @@ namespace Pngcs
         /// </remarks>
         public string[] SkipChunkIds { get; set; }
 
-        private Dictionary<string, int> skipChunkIdsSet = null; // lazily created
+        Dictionary<string, int> skipChunkIdsSet = null; // lazily created
 
         /// <summary>
         /// A high level wrapper of a ChunksList : list of read chunks
         /// </summary>
-        private readonly PngMetadata metadata;
+        readonly PngMetadata metadata;
         /// <summary>
         /// Read chunks
         /// </summary>
-        private readonly ChunksList chunksList;
+        readonly ChunksList chunksList;
 
         /// <summary>
         /// buffer: last read line
@@ -137,17 +134,17 @@ namespace Pngcs
         long offset = 0;  // offset in InputStream = bytes read
         int bytesChunksLoaded = 0; // bytes loaded from anciallary chunks
 
-        readonly Stream inputStream;
-        internal AZlibInputStream idatIstream;
+        readonly IO.Stream inputStream;
+        internal Zlib.AZlibInputStream idatIstream;
         internal PngIDatChunkInputStream iIdatCstream;
 
-        protected Adler32 crctest; // If set to non null, it gets a CRC of the unfiltered bytes, to check for images equality
+        protected Zlib.Adler32 crctest; // If set to non null, it gets a CRC of the unfiltered bytes, to check for images equality
 
         /// <summary>
         /// Constructs a PngReader from a Stream, with no filename information
         /// </summary>
         /// <param name="inputStream"></param>
-        public PngReader ( Stream inputStream )
+        public PngReader ( IO.Stream inputStream )
             : this( inputStream , "[NO FILENAME AVAILABLE]" )
         {
 
@@ -158,66 +155,60 @@ namespace Pngcs
         /// </summary>
         /// <remarks>The constructor reads the signature and first chunk (IDHR)<seealso cref="FileHelper.CreatePngReader(string)"/>
         /// </remarks>
-        /// 
-        /// <param name="inputStream"></param>
         /// <param name="filename">Optional, can be the filename or a description.</param>
-        public PngReader ( Stream inputStream , string filename )
+        public PngReader ( IO.Stream inputStream , string filename )
         {
             this.filename = filename!=null ? filename : string.Empty;
             this.inputStream = inputStream;
             this.chunksList = new ChunksList(null);
             this.metadata = new PngMetadata(chunksList);
             this.offset = 0;
+            
             // set default options
             this.CurrentChunkGroup = -1;
             this.ShouldCloseStream = true;
             this.MaxBytesMetadata = 5 * 1024 * 1024;
             this.MaxTotalBytesRead = 200 * 1024 * 1024; // 200MB
             this.SkipChunkMaxSize = 2 * 1024 * 1024;
-            this.SkipChunkIds = new string[] { "fdAT" };
+            this.SkipChunkIds = new string[]{ "fdAT" };
             this.ChunkLoadBehaviour = Pngcs.Chunks.ChunkLoadBehaviour.LOAD_CHUNK_ALWAYS;
+            
             // starts reading: signature
             byte[] pngid = new byte[8];
-            PngHelperInternal.ReadBytes(inputStream, pngid, 0, pngid.Length);
+            PngHelperInternal.ReadBytes( inputStream , pngid , 0 , pngid.Length );
             offset += pngid.Length;
-            if (!PngCsUtils.arraysEqual(pngid, PngHelperInternal.PNG_ID_SIGNATURE))
-                throw new PngjInputException("Bad PNG signature");
+            if( !PngCsUtils.UnSafeEquals(pngid,PngHelperInternal.PNG_ID_SIGNATURE) ) throw new IO.IOException("Bad PNG signature");
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_0_IDHR;
+            
             // reads first chunk IDHR
-            int clen = PngHelperInternal.ReadInt4(inputStream);
+            int clen = PngHelperInternal.ReadInt4( inputStream );
             offset += 4;
-            if (clen != 13)
-                throw new System.Exception("IDHR chunk len != 13 ?? " + clen);
+            if( clen!=13 ) throw new System.Exception($"IDHR chunk len!=13 ?? Is:{clen}");
             byte[] chunkid = new byte[4];
             PngHelperInternal.ReadBytes(inputStream, chunkid, 0, 4);
-            if (!PngCsUtils.arraysEqual4(chunkid, ChunkHelper.b_IHDR))
-                throw new PngjInputException("IHDR not found as first chunk??? ["
-                        + ChunkHelper.ToString(chunkid) + "]");
+            if( !PngCsUtils.UnSafeEquals(chunkid, ChunkHelper.b_IHDR) ) throw new IO.IOException($"IHDR not found as first chunk??? [{ChunkHelper.ToString(chunkid)}]");
             offset += 4;
             PngChunkIHDR ihdr = (PngChunkIHDR)ReadChunk(chunkid, clen, false);
-            bool alpha = (ihdr.Colormodel & 0x04) != 0;
-            bool palette = (ihdr.Colormodel & 0x01) != 0;
-            bool grayscale = (ihdr.Colormodel == 0 || ihdr.Colormodel == 4);
+            bool alpha = (ihdr.Colormodel & 0x04)!=0;
+            bool palette = (ihdr.Colormodel & 0x01)!=0;
+            bool grayscale = (ihdr.Colormodel==0 || ihdr.Colormodel==4);
+            
             // creates ImgInfo and imgLine, and allocates buffers
             ImgInfo = new ImageInfo(ihdr.Cols, ihdr.Rows, ihdr.Bitspc, alpha, grayscale, palette);
             rowb = new byte[ImgInfo.BytesPerRow + 1];
             rowbprev = new byte[rowb.Length];
             rowbfilter = new byte[rowb.Length];
-            interlaced = ihdr.Interlaced == 1;
+            interlaced = ihdr.Interlaced==1;
             deinterlacer = interlaced ? new PngDeinterlacer(ImgInfo) : null;
+            
             // some checks
-            if (ihdr.Filmeth != 0 || ihdr.Compmeth != 0 || (ihdr.Interlaced & 0xFFFE) != 0)
-                throw new PngjInputException("compmethod or filtermethod or interlaced unrecognized");
-            if (ihdr.Colormodel < 0 || ihdr.Colormodel > 6 || ihdr.Colormodel == 1
-                    || ihdr.Colormodel == 5)
-                throw new PngjInputException("Invalid colormodel " + ihdr.Colormodel);
-            if (ihdr.Bitspc != 1 && ihdr.Bitspc != 2 && ihdr.Bitspc != 4 && ihdr.Bitspc != 8
-                    && ihdr.Bitspc != 16)
-                throw new PngjInputException("Invalid bit depth " + ihdr.Bitspc);
+            if( ihdr.Filmeth!=0 || ihdr.Compmeth!=0 || (ihdr.Interlaced & 0xFFFE)!=0 ) throw new IO.IOException("compmethod or filtermethod or interlaced unrecognized");
+            if( ihdr.Colormodel<0 || ihdr.Colormodel>6 || ihdr.Colormodel==1 || ihdr.Colormodel==5 ) throw new IO.IOException($"Invalid colormodel {ihdr.Colormodel}");
+            if( ihdr.Bitspc!=1 && ihdr.Bitspc!=2 && ihdr.Bitspc!=4 && ihdr.Bitspc!=8 && ihdr.Bitspc!=16 ) throw new IO.IOException($"Invalid bit depth {ihdr.Bitspc}");
         }
 
 
-        bool FirstChunksNotYetRead () => CurrentChunkGroup < ChunksList.CHUNK_GROUP_1_AFTERIDHR;
+        bool FirstChunksNotYetRead () => CurrentChunkGroup<ChunksList.CHUNK_GROUP_1_AFTERIDHR;
 
 
         /// <summary>
@@ -228,9 +219,11 @@ namespace Pngcs
         {
             if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_5_AFTERIDAT )
             {
-                try {
+                try
+                {
                     idatIstream.Close();
-                } catch( System.Exception ) { }//yyyhm... are you sure?
+                }
+                catch( System.Exception ) { }//yyyhm... are you sure?
                 ReadLastChunks();
             }
             Close();
@@ -240,9 +233,11 @@ namespace Pngcs
         {
             if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END )
             {// this could only happen if forced close
-                try {
+                try
+                {
                     idatIstream.Close();
-                } catch( System.Exception ) { }//yyyhm... are you sure?
+                }
+                catch( System.Exception ) { }//yyyhm... are you sure?
                 CurrentChunkGroup = ChunksList.CHUNK_GROUP_6_END;
             }
             if( ShouldCloseStream )
@@ -251,29 +246,18 @@ namespace Pngcs
             }
         }
 
-
         void UnfilterRow ( int nbytes )
         {
             int ftn = rowbfilter[0];
-            FilterType ft = (FilterType)ftn;
-            switch (ft) {
-                case Pngcs.FilterType.FILTER_NONE:
-                    UnfilterRowNone(nbytes);
-                    break;
-                case Pngcs.FilterType.FILTER_SUB:
-                    UnfilterRowSub(nbytes);
-                    break;
-                case Pngcs.FilterType.FILTER_UP:
-                    UnfilterRowUp(nbytes);
-                    break;
-                case Pngcs.FilterType.FILTER_AVERAGE:
-                    UnfilterRowAverage(nbytes);
-                    break;
-                case Pngcs.FilterType.FILTER_PAETH:
-                    UnfilterRowPaeth(nbytes);
-                    break;
-                default:
-                    throw new PngjInputException("Filter type " + ftn + " not implemented");
+            FilterType filterType = (FilterType)ftn;
+            switch( filterType )
+            {
+                case Pngcs.FilterType.FILTER_NONE:      UnfilterRowNone(nbytes);        break;
+                case Pngcs.FilterType.FILTER_SUB:       UnfilterRowSub(nbytes);         break;
+                case Pngcs.FilterType.FILTER_UP:        UnfilterRowUp(nbytes);          break;
+                case Pngcs.FilterType.FILTER_AVERAGE:   UnfilterRowAverage(nbytes);     break;
+                case Pngcs.FilterType.FILTER_PAETH:     UnfilterRowPaeth(nbytes);       break;
+                default: throw new IO.IOException($"Filter type {ftn} not implemented");
             }
             if( crctest!=null )
             {
@@ -284,139 +268,138 @@ namespace Pngcs
 
         void UnfilterRowAverage ( int nbytes )
         {
+            int bpp = ImgInfo.BytesPixel;
             int i, j, x;
-            for( j=1-ImgInfo.BytesPixel , i=1 ; i<=nbytes ; i++ , j++ )
+            for( j=1-bpp , i=1 ; i<=nbytes ; i++ , j++ )
             {
-                x = (j > 0) ? rowb[j] : (byte)0;
-                rowb[ i ] = (byte)( rowbfilter[i] + (x + (rowbprev[i] & 0xFF)) / 2 );
+                x = (j>0) ? rowb[j] : (byte)0;
+                rowb[i] = (byte)( rowbfilter[i] + (x + (rowbprev[i] & 0xFF)) / 2 );
             }
         }
 
         void UnfilterRowNone ( int nbytes )
         {
             for( int i=1 ; i<=nbytes ; i++ )
-            {
-                rowb[ i ] = (byte)( rowbfilter[ i ] );
-            }
+                rowb[i] = (byte)( rowbfilter[i] );
         }
 
         void UnfilterRowPaeth ( int nbytes )
         {
+            int bpp = ImgInfo.BytesPixel;
             int i, j, x, y;
-            for( j=1-ImgInfo.BytesPixel , i=1 ; i<=nbytes ; i++ , j++ )
+            for( j=1-bpp , i=1 ; i<=nbytes ; i++ , j++ )
             {
-                x = (j > 0) ? rowb[j] : (byte)0;
-                y = (j > 0) ? rowbprev[j] : (byte)0;
+                x = j>0 ? rowb[j] : (byte)0;
+                y = j>0 ? rowbprev[j] : (byte)0;
                 rowb[i] = (byte)( rowbfilter[i] + PngHelperInternal.FilterPaethPredictor( x , rowbprev[i] , y ) );
             }
         }
 
         void UnfilterRowSub ( int nbytes )
         {
+            int bpp = ImgInfo.BytesPixel;
             int i, j;
-            for (i = 1; i <= ImgInfo.BytesPixel; i++) {
-                rowb[i] = (byte)(rowbfilter[i]);
-            }
-            for (j = 1, i = ImgInfo.BytesPixel + 1; i <= nbytes; i++, j++) {
-                rowb[i] = (byte)(rowbfilter[i] + rowb[j]);
-            }
+            for( i=1 ; i<=bpp ; i++ )
+                rowb[i] = (byte)rowbfilter[i];
+            for( j=1 , i=bpp+1 ; i<=nbytes ; i++ , j++ )
+                rowb[i] = (byte)( rowbfilter[i] + rowb[j] );
         }
 
         void UnfilterRowUp ( int nbytes )
         {
             for( int i=1 ; i<=nbytes ; i++ )
-            {
-                rowb[i] = (byte)(rowbfilter[i] + rowbprev[i]);
-            }
+                rowb[i] = (byte)( rowbfilter[i]+rowbprev[i] );
         }
-
-
 
         /// <summary>
         /// Reads chunks before first IDAT. Position before: after IDHR (crc included)
         /// Position after: just after the first IDAT chunk id Returns length of first
         /// IDAT chunk , -1 if not found
         /// </summary>
-        ///
         void ReadFirstChunks ()
         {
-            if (!FirstChunksNotYetRead())
-                return;
+            if( !FirstChunksNotYetRead() ) return;
             int clen = 0;
             bool found = false;
             byte[] chunkid = new byte[4]; // it's important to reallocate in each
             this.CurrentChunkGroup = ChunksList.CHUNK_GROUP_1_AFTERIDHR;
-            while (!found) {
+            while( !found )
+            {
                 clen = PngHelperInternal.ReadInt4(inputStream);
                 offset += 4;
-                if (clen < 0)
-                    break;
-                PngHelperInternal.ReadBytes(inputStream, chunkid, 0, 4);
+                if( clen<0 ) break;
+                PngHelperInternal.ReadBytes( inputStream , chunkid , 0 , 4 );
                 offset += 4;
-                if (PngCsUtils.arraysEqual4(chunkid, Pngcs.Chunks.ChunkHelper.b_IDAT)) {
+                if( PngCsUtils.UnSafeEquals(chunkid, Pngcs.Chunks.ChunkHelper.b_IDAT) )
+                {
                     found = true;
                     this.CurrentChunkGroup = ChunksList.CHUNK_GROUP_4_IDAT;
                     // add dummy idat chunk to list
                     chunksList.AppendReadChunk(new PngChunkIDAT(ImgInfo, clen, offset - 8), CurrentChunkGroup);
                     break;
-                } else if (PngCsUtils.arraysEqual4(chunkid, Pngcs.Chunks.ChunkHelper.b_IEND)) {
-                    throw new PngjInputException("END chunk found before image data (IDAT) at offset=" + offset);
                 }
+                else if( PngCsUtils.UnSafeEquals(chunkid, Pngcs.Chunks.ChunkHelper.b_IEND) ) throw new IO.IOException($"END chunk found before image data (IDAT) at offset={offset}");
                 string chunkids = ChunkHelper.ToString(chunkid);
-                if (chunkids.Equals(ChunkHelper.PLTE))
+                if( chunkids.Equals(ChunkHelper.PLTE) )
+                {
                     this.CurrentChunkGroup = ChunksList.CHUNK_GROUP_2_PLTE;
-                ReadChunk(chunkid, clen, false);
-                if (chunkids.Equals(ChunkHelper.PLTE))
+                }
+                ReadChunk( chunkid , clen , false );
+                if( chunkids.Equals(ChunkHelper.PLTE) )
+                {
                     this.CurrentChunkGroup = ChunksList.CHUNK_GROUP_3_AFTERPLTE;
+                }
             }
             int idatLen = found ? clen : -1;
-            if (idatLen < 0)
-                throw new PngjInputException("first idat chunk not found!");
+            if( idatLen<0 ) throw new IO.IOException("first idat chunk not found!");
             iIdatCstream = new PngIDatChunkInputStream(inputStream, idatLen, offset);
-            idatIstream = ZlibStreamFactory.createZlibInputStream(iIdatCstream, true);
-            if (!crcEnabled)
+            idatIstream = Zlib.ZlibStreamFactory.createZlibInputStream(iIdatCstream, true);
+            if( !crcEnabled )
+            {
                 iIdatCstream.DisableCrcCheck();
+            }
         }
 
         /// <summary>
         /// Reads (and processes ... up to a point) chunks after last IDAT.
         /// </summary>
-        ///
         void ReadLastChunks ()
         {
             CurrentChunkGroup = ChunksList.CHUNK_GROUP_5_AFTERIDAT;
             // PngHelper.logdebug("idat ended? " + iIdatCstream.isEnded());
-            if (!iIdatCstream.IsEnded())
+            if( !iIdatCstream.IsEnded() )
+            {
                 iIdatCstream.ForceChunkEnd();
+            }
             int clen = iIdatCstream.GetLenLastChunk();
             byte[] chunkid = iIdatCstream.GetIdLastChunk();
             bool endfound = false;
             bool first = true;
             bool skip = false;
-            while (!endfound) {
+            while( !endfound )
+            {
                 skip = false;
-                if (!first) {
+                if( !first )
+                {
                     clen = PngHelperInternal.ReadInt4(inputStream);
                     offset += 4;
-                    if (clen < 0)
-                        throw new PngjInputException("bad len " + clen);
+                    if( clen<0 ) throw new IO.IOException($"bad len {clen}");
                     PngHelperInternal.ReadBytes(inputStream, chunkid, 0, 4);
                     offset += 4;
                 }
                 first = false;
-                if (PngCsUtils.arraysEqual4(chunkid, ChunkHelper.b_IDAT))
+                if( PngCsUtils.UnSafeEquals( chunkid , ChunkHelper.b_IDAT ) )
                 {
                     skip = true; // extra dummy (empty?) idat chunk, it can happen, ignore it
                 }
-                else if( PngCsUtils.arraysEqual4( chunkid , ChunkHelper.b_IEND ) )
+                else if( PngCsUtils.UnSafeEquals( chunkid , ChunkHelper.b_IEND ) )
                 {
                     CurrentChunkGroup = ChunksList.CHUNK_GROUP_6_END;
                     endfound = true;
                 }
                 ReadChunk( chunkid , clen , skip );
             }
-            if (!endfound)
-                throw new PngjInputException("end chunk not found - offset=" + offset);
+            if( !endfound ) throw new IO.IOException($"end chunk not found - offset={offset}");
             // PngHelper.logdebug("end chunk found ok offset=" + offset);
         }
 
@@ -424,44 +407,55 @@ namespace Pngcs
         /// Reads chunkd from input stream, adds to ChunksList, and returns it.
         /// If it's skipped, a PngChunkSkipped object is created
         /// </summary>
-        /// <returns></returns>
-        private PngChunk ReadChunk(byte[] chunkid, int clen, bool skipforced) {
-            if (clen < 0) throw new PngjInputException("invalid chunk lenght: " + clen);
+        PngChunk ReadChunk ( byte[] chunkid , int clen , bool skipforced )
+        {
+            if( clen<0) throw new IO.IOException($"invalid chunk lenght: {clen}");
             // skipChunksByIdSet is created lazyly, if fist IHDR has already been read
-            if (skipChunkIdsSet == null && CurrentChunkGroup > ChunksList.CHUNK_GROUP_0_IDHR) {
-                skipChunkIdsSet = new Dictionary<string, int>();
-                if (SkipChunkIds != null)
-                    foreach (string id in SkipChunkIds) skipChunkIdsSet.Add(id, 1);
+            if( skipChunkIdsSet==null && CurrentChunkGroup>ChunksList.CHUNK_GROUP_0_IDHR )
+            {
+                skipChunkIdsSet = new Dictionary<string,int>();
+                if( SkipChunkIds!=null )
+                {
+                    foreach( string id in SkipChunkIds )
+                    {
+                        skipChunkIdsSet.Add( id , 1 );
+                    }
+                }
             }
 
             string chunkidstr = ChunkHelper.ToString(chunkid);
             PngChunk pngChunk = null;
             bool critical = ChunkHelper.IsCritical(chunkidstr);
             bool skip = skipforced;
-            if (MaxTotalBytesRead > 0 && clen + offset > MaxTotalBytesRead)
-                throw new PngjInputException("Maximum total bytes to read exceeeded: " + MaxTotalBytesRead + " offset:"
-                        + offset + " clen=" + clen);
+            if( MaxTotalBytesRead>0 && clen+offset>MaxTotalBytesRead ) throw new IO.IOException($"Maximum total bytes to read exceeeded: {MaxTotalBytesRead} offset:{offset} clen={clen}");
             // an ancillary chunks can be skipped because of several reasons:
-            if (CurrentChunkGroup > ChunksList.CHUNK_GROUP_0_IDHR && !ChunkHelper.IsCritical(chunkidstr))
-                skip = skip || (SkipChunkMaxSize > 0 && clen >= SkipChunkMaxSize) || skipChunkIdsSet.ContainsKey(chunkidstr)
-                        || (MaxBytesMetadata > 0 && clen > MaxBytesMetadata - bytesChunksLoaded)
-                        || !ChunkHelper.ShouldLoad(chunkidstr, ChunkLoadBehaviour);
+            if( CurrentChunkGroup>ChunksList.CHUNK_GROUP_0_IDHR && !ChunkHelper.IsCritical(chunkidstr) )
+            {
+                skip = skip
+                    || (SkipChunkMaxSize>0 && clen>=SkipChunkMaxSize)
+                    || skipChunkIdsSet.ContainsKey(chunkidstr)
+                    || ( MaxBytesMetadata>0 && clen>MaxBytesMetadata-bytesChunksLoaded )
+                    || !ChunkHelper.ShouldLoad(chunkidstr,ChunkLoadBehaviour);
+            }
 
-            if (skip) {
+            if( skip)
+            {
                 PngHelperInternal.SkipBytes(inputStream, clen);
                 PngHelperInternal.ReadInt4(inputStream); // skip - we dont call PngHelperInternal.skipBytes(inputStream, clen + 4) for risk of overflow 
                 pngChunk = new PngChunkSkipped(chunkidstr, ImgInfo, clen);
-            } else {
-                ChunkRaw chunk = new ChunkRaw(clen, chunkid, true);
-                chunk.ReadChunkData(inputStream, crcEnabled || critical);
-                pngChunk = PngChunk.Factory(chunk, ImgInfo);
-                if (!pngChunk.Crit) {
+            }
+            else
+            {
+                ChunkRaw chunk = new ChunkRaw( clen , chunkid , true );
+                chunk.ReadChunkData( inputStream , crcEnabled || critical );
+                pngChunk = PngChunk.Factory( chunk , ImgInfo );
+                if( !pngChunk.Crit )
+                {
                     bytesChunksLoaded += chunk.Len;
                 }
-
             }
             pngChunk.Offset = offset - 8L;
-            chunksList.AppendReadChunk(pngChunk, CurrentChunkGroup);
+            chunksList.AppendReadChunk( pngChunk , CurrentChunkGroup );
             offset += clen + 4L;
             return pngChunk;
         }
@@ -519,9 +513,9 @@ namespace Pngcs
 
         public ImageLine ReadRowInt ( int nrow )
         {
-            if (imgLine == null)
+            if( imgLine==null)
                 imgLine = new ImageLine(ImgInfo, ImageLine.ESampleType.INT, unpackedMode);
-            if (imgLine.Rown == nrow) // already read
+            if( imgLine.Rown==nrow) // already read
                 return imgLine;
             ReadRowInt(imgLine.Scanline, nrow);
             imgLine.FilterUsed = (FilterType)rowbfilter[0];
@@ -531,9 +525,9 @@ namespace Pngcs
 
         public ImageLine ReadRowByte ( int nrow )
         {
-            if (imgLine == null)
+            if( imgLine==null)
                 imgLine = new ImageLine(ImgInfo, ImageLine.ESampleType.BYTE, unpackedMode);
-            if (imgLine.Rown == nrow) // already read
+            if( imgLine.Rown==nrow) // already read
                 return imgLine;
             ReadRowByte(imgLine.ScanlineB, nrow);
             imgLine.FilterUsed = (FilterType)rowbfilter[0];
@@ -551,7 +545,7 @@ namespace Pngcs
             }
             if( interlaced==false )
             {
-                if( nrow<=rowNum ) { throw new PngjInputException( $"rows must be read in increasing order: { nrow }"); }
+                if( nrow<=rowNum ) { throw new IO.IOException( $"rows must be read in increasing order: { nrow }"); }
                 int bytesread = 0;
                 while( rowNum<nrow )
                 {
@@ -584,7 +578,7 @@ namespace Pngcs
             }
             if( interlaced==false )
             {
-                if (nrow <= rowNum) { throw new PngjInputException( $"rows must be read in increasing order: { nrow }" ); }
+                if( nrow<=rowNum) { throw new IO.IOException( $"rows must be read in increasing order: { nrow }" ); }
                 int bytesread = 0;
                 while( rowNum<nrow )
                 {
@@ -611,15 +605,24 @@ namespace Pngcs
 
         void decodeLastReadRowToInt ( int[] buffer , int bytesRead )// see http://www.libpng.org/pub/png/spec/1.2/PNG-DataRep.html
         {
-            if (ImgInfo.BitDepth <= 8) {
-                for (int i = 0, j = 1; i < bytesRead; i++)
+            if( ImgInfo.BitDepth<=8 )
+            {
+                for( int i=0 , j=1 ; i<bytesRead ; i++ )
+                {
                     buffer[i] = (rowb[j++]);
-            } else { // 16 bitspc
-                for (int i = 0, j = 1; j < bytesRead; i++)
-                    buffer[i] = (rowb[j++] << 8) + rowb[j++];
+                }
             }
-            if (ImgInfo.Packed && unpackedMode)
-                ImageLine.unpackInplaceInt(ImgInfo, buffer, buffer, false);
+            else
+            { // 16 bitspc
+                for( int i=0 , j=1 ; j<bytesRead ; i++ )
+                {
+                    buffer[i] = ( rowb[j++]<<8 ) + rowb[j++];
+                }
+            }
+            if( ImgInfo.Packed && unpackedMode )
+            {
+                ImageLine.unpackInplaceInt( ImgInfo , buffer , buffer , false );
+            }
         }
 
         void decodeLastReadRowToByte ( byte[] buffer , int bytesRead )// see http://www.libpng.org/pub/png/spec/1.2/PNG-DataRep.html
@@ -644,29 +647,39 @@ namespace Pngcs
 
         public ImageLines ReadRowsInt ( int rowOffset , int nRows , int rowStep )
         {
-            if (nRows < 0)
+            if( nRows<0 )
+            {
                 nRows = (ImgInfo.Rows - rowOffset) / rowStep;
-            if (rowStep < 1 || rowOffset < 0 || nRows * rowStep + rowOffset > ImgInfo.Rows)
-                throw new PngjInputException("bad args");
-            ImageLines imlines = new ImageLines(ImgInfo, ImageLine.ESampleType.INT, unpackedMode, rowOffset, nRows, rowStep);
-            if (!interlaced) {
-                for (int j = 0; j < ImgInfo.Rows; j++) {
+            }
+            if( rowStep<1 || rowOffset<0 || nRows*rowStep+rowOffset>ImgInfo.Rows ) throw new IO.IOException("bad args");
+            ImageLines imlines = new ImageLines( ImgInfo , ImageLine.ESampleType.INT , unpackedMode , rowOffset , nRows , rowStep );
+            if( !interlaced )
+            {
+                for( int j=0; j<ImgInfo.Rows ; j++ )
+                {
                     int bytesread = ReadRowRaw(j); // read and perhaps discards
                     int mrow = imlines.ImageRowToMatrixRowStrict(j);
-                    if (mrow >= 0)
-                        decodeLastReadRowToInt(imlines.Scanlines[mrow], bytesread);
+                    if( mrow>=0 )
+                    {
+                        decodeLastReadRowToInt( imlines.Scanlines[mrow] , bytesread );
+                    }
                 }
-            } else { // and now, for something completely different (interlaced)
+            }
+            else
+            { // and now, for something completely different (interlaced)
                 int[] buf = new int[unpackedMode ? ImgInfo.SamplesPerRow : ImgInfo.SamplesPerRowPacked];
-                for (int p = 1; p <= 7; p++) {
+                for( int p=1 ; p<=7 ; p++ )
+                {
                     deinterlacer.setPass(p);
-                    for (int i = 0; i < deinterlacer.getRows(); i++) {
+                    for( int i=0 ; i<deinterlacer.getRows() ; i++ )
+                    {
                         int bytesread = ReadRowRaw(i);
                         int j = deinterlacer.getCurrRowReal();
                         int mrow = imlines.ImageRowToMatrixRowStrict(j);
-                        if (mrow >= 0) {
-                            decodeLastReadRowToInt(buf, bytesread);
-                            deinterlacer.deinterlaceInt(buf, imlines.Scanlines[mrow], !unpackedMode);
+                        if( mrow>=0 )
+                        {
+                            decodeLastReadRowToInt( buf , bytesread );
+                            deinterlacer.deinterlaceInt( buf , imlines.Scanlines[mrow] , !unpackedMode );
                         }
                     }
                 }
@@ -679,29 +692,36 @@ namespace Pngcs
 
         public ImageLines ReadRowsByte ( int rowOffset , int nRows , int rowStep )
         {
-            if (nRows < 0)
+            if( nRows<0 )
+            {
                 nRows = (ImgInfo.Rows - rowOffset) / rowStep;
-            if (rowStep < 1 || rowOffset < 0 || nRows * rowStep + rowOffset > ImgInfo.Rows)
-                throw new PngjInputException("bad args");
-            ImageLines imlines = new ImageLines(ImgInfo, ImageLine.ESampleType.BYTE, unpackedMode, rowOffset, nRows, rowStep);
-            if (!interlaced) {
-                for (int j = 0; j < ImgInfo.Rows; j++) {
+            }
+            if( rowStep<1 || rowOffset<0 || nRows*rowStep+rowOffset>ImgInfo.Rows ) throw new IO.IOException("bad args");
+            ImageLines imlines = new ImageLines( ImgInfo , ImageLine.ESampleType.BYTE , unpackedMode , rowOffset , nRows , rowStep );
+            if( !interlaced )
+            {
+                for( int j=0 ; j<ImgInfo.Rows ; j++ )
+                {
                     int bytesread = ReadRowRaw(j); // read and perhaps discards
                     int mrow = imlines.ImageRowToMatrixRowStrict(j);
-                    if (mrow >= 0)
-                        decodeLastReadRowToByte(imlines.ScanlinesB[mrow], bytesread);
+                    if( mrow>=0 ) decodeLastReadRowToByte( imlines.ScanlinesB[mrow] , bytesread );
                 }
-            } else { // and now, for something completely different (interlaced)
-                byte[] buf = new byte[unpackedMode ? ImgInfo.SamplesPerRow : ImgInfo.SamplesPerRowPacked];
-                for (int p = 1; p <= 7; p++) {
-                    deinterlacer.setPass(p);
-                    for (int i = 0; i < deinterlacer.getRows(); i++) {
+            }
+            else
+            { // and now, for something completely different (interlaced)
+                byte[] buf = new byte[ unpackedMode ? ImgInfo.SamplesPerRow : ImgInfo.SamplesPerRowPacked ];
+                for( int p=1 ; p<=7 ; p++ )
+                {
+                    deinterlacer.setPass( p );
+                    for( int i=0 ; i<deinterlacer.getRows() ; i++ )
+                    {
                         int bytesread = ReadRowRaw(i);
                         int j = deinterlacer.getCurrRowReal();
                         int mrow = imlines.ImageRowToMatrixRowStrict(j);
-                        if (mrow >= 0) {
-                            decodeLastReadRowToByte(buf, bytesread);
-                            deinterlacer.deinterlaceByte(buf, imlines.ScanlinesB[mrow], !unpackedMode);
+                        if( mrow>=0 )
+                        {
+                            decodeLastReadRowToByte( buf , bytesread );
+                            deinterlacer.deinterlaceByte( buf , imlines.ScanlinesB[mrow] , !unpackedMode );
                         }
                     }
                 }
@@ -726,14 +746,14 @@ namespace Pngcs
             int bytesRead = ImgInfo.BytesPerRow; // NOT including the filter byte
             if( interlaced )
             {
-                if( nrow<0 || nrow>deinterlacer.getRows() || (nrow != 0 && nrow != deinterlacer.getCurrRowSubimg() + 1)) { throw new PngjInputException( $"invalid row in interlaced mode: { nrow }"); }
+                if( nrow<0 || nrow>deinterlacer.getRows() || (nrow!=0 && nrow!=deinterlacer.getCurrRowSubimg() + 1)) { throw new IO.IOException( $"invalid row in interlaced mode: { nrow }"); }
                 deinterlacer.setRow( nrow );
                 bytesRead = ( ImgInfo.BitspPixel * deinterlacer.getPixelsToRead() + 7 ) / 8;
-                if( bytesRead<1 ) { throw new PngjExceptionInternal( "what's going on??" ); }
+                if( bytesRead<1 ) { throw new System.Exception( "what's going on??" ); }
             }
             else
             { // check for non interlaced
-                if( nrow<0 || nrow>=ImgInfo.Rows || nrow!=rowNum+1 ) { throw new PngjInputException( $"invalid row: { nrow }" ); }
+                if( nrow<0 || nrow>=ImgInfo.Rows || nrow!=rowNum+1 ) { throw new IO.IOException( $"invalid row: { nrow }" ); }
             }
             rowNum = nrow;
             // swap buffers
@@ -743,8 +763,8 @@ namespace Pngcs
             // loads in rowbfilter "raw" bytes, with filter
             PngHelperInternal.ReadBytes(idatIstream, rowbfilter, 0, bytesRead + 1);
             offset = iIdatCstream.GetOffset();
-            if( offset<0 ) { throw new PngjExceptionInternal( $"bad offset ?? { offset }"); }
-            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new PngjInputException( $"Reading IDAT: Maximum total bytes to read exceeeded: { MaxTotalBytesRead } offset:{ offset }" ); }
+            if( offset<0 ) { throw new System.Exception( $"bad offset ?? { offset }"); }
+            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new IO.IOException( $"Reading IDAT: Maximum total bytes to read exceeeded: { MaxTotalBytesRead } offset:{ offset }" ); }
             rowb[0] = 0;
             UnfilterRow(bytesRead);
             rowb[0] = rowbfilter[0];
@@ -763,15 +783,15 @@ namespace Pngcs
             }
             // we read directly from the compressed stream, we dont decompress nor chec CRC
             iIdatCstream.DisableCrcCheck();
-            try {
+            try
+            {
                 int r;
-                do {
-                    r = iIdatCstream.Read( rowbfilter , 0 , rowbfilter.Length );
-                } while( r>=0 );
-            } catch( IOException e ) { throw new PngjInputException( "error in raw read of IDAT" , e ); }
+                do { r = iIdatCstream.Read( rowbfilter , 0 , rowbfilter.Length ); }
+                while( r>=0 );
+            } catch( IO.IOException e ) { throw new IO.IOException( "error in raw read of IDAT" , e ); }
             offset = iIdatCstream.GetOffset();
-            if( offset<0 ) { throw new PngjExceptionInternal( $"bad offset ?? { offset }" ); }
-            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new PngjInputException( $"Reading IDAT: Maximum total bytes to read exceeeded: { MaxTotalBytesRead } offset:{ offset }" ); }
+            if( offset<0 ) { throw new System.Exception( $"bad offset ?? {offset}" ); }
+            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new IO.IOException( $"Reading IDAT: Maximum total bytes to read exceeeded: {MaxTotalBytesRead} offset:{offset}" ); }
             ReadLastAndClose();
         }
 
@@ -784,10 +804,7 @@ namespace Pngcs
         /// </summary>
         public void End ()
         {
-            if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END )
-            {
-                Close();
-            }
+            if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END )  Close();
         }
 
         public bool IsInterlaced () => interlaced;
@@ -803,12 +820,9 @@ namespace Pngcs
 
         internal long GetCrctestVal () => crctest.GetValue();
 
-        internal void InitCrctest () => this.crctest = new Adler32();
+        internal void InitCrctest () => this.crctest = new Zlib.Adler32();
 
-        void System.IDisposable.Dispose ()
-        {
-            this.End();
-        }
+        void System.IDisposable.Dispose () => this.End();
 
     }
 }

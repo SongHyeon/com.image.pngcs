@@ -1,13 +1,5 @@
 namespace Pngcs
 {
-
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.IO;
-    using System.Runtime.CompilerServices;
-
-
     /// <summary>
     /// Lightweight wrapper for an image scanline, for read and write
     /// </summary>
@@ -16,6 +8,7 @@ namespace Pngcs
     ///</remarks>
     public class ImageLine
     {
+        
         /// <summary>
         /// ImageInfo (readonly inmutable)
         /// </summary>
@@ -112,19 +105,19 @@ namespace Pngcs
             ElementsPerRow = this.SamplesUnpacked ? imgInfo.SamplesPerRow : imgInfo.SamplesPerRowPacked;
             if( stype==ESampleType.INT )
             {
-                Scanline = sci != null ? sci : new int[ ElementsPerRow ];
+                Scanline = sci!=null ? sci : new int[ ElementsPerRow ];
                 ScanlineB = null;
-                maxSampleVal = bitDepth == 16 ? 0xFFFF : GetMaskForPackedFormatsLs( bitDepth );
+                maxSampleVal = bitDepth==16 ? 0xFFFF : GetMaskForPackedFormatsLs( bitDepth );
             }
             else if( stype==ESampleType.BYTE )
             {
-                ScanlineB = scb != null ? scb : new byte[ ElementsPerRow ];
+                ScanlineB = scb!=null ? scb : new byte[ ElementsPerRow ];
                 Scanline = null;
-                maxSampleVal = bitDepth == 16 ? 0xFF : GetMaskForPackedFormatsLs( bitDepth );
+                maxSampleVal = bitDepth==16 ? 0xFF : GetMaskForPackedFormatsLs( bitDepth );
             }
             else
             {
-                throw new PngjExceptionInternal( "bad ImageLine initialization" );
+                throw new System.Exception( "bad ImageLine initialization" );
             }
             this.Rown = -1;
         }
@@ -139,7 +132,7 @@ namespace Pngcs
             int mask, offset, v;
             if( offset0!=8 )
             {
-                mask = mask0 << offset0;
+                mask = mask0<<offset0;
                 offset = offset0; // how many bits to shift the mask to the right to recover mask0
             }
             else
@@ -149,7 +142,7 @@ namespace Pngcs
             }
             for( int j=iminfo.SamplesPerRow-1 , i=iminfo.SamplesPerRowPacked-1 ; j>=0 ; j-- )
             {
-                v = (src[i] & mask) >> offset;
+                v = (src[i] & mask)>>offset;
                 if( Scale ) { v <<= scalefactor; }
                 dst[j] = v;
                 mask <<= bitDepth;
@@ -175,12 +168,12 @@ namespace Pngcs
             v0 = src[0]; // first value is special for in place
             dst[0] = 0;
             if( scaled ) { v0 >>= scalefactor; }
-            v0 = ((v0 & mask0) << offset);
+            v0 = ((v0 & mask0)<<offset);
             for( int i=0 , j=0 ; j<iminfo.SamplesPerRow ; j++ )
             {
                 v = src[j];
                 if( scaled ) { v >>= scalefactor; }
-                dst[i] |= ((v & mask0) << offset);
+                dst[i] |= ((v & mask0)<<offset);
                 offset -= bitDepth;
                 if( offset<0 )
                 {
@@ -202,7 +195,7 @@ namespace Pngcs
             int mask, offset, v;
             if( offset0!=8 )
             {
-                mask = mask0 << offset0;
+                mask = mask0<<offset0;
                 offset = offset0; // how many bits to shift the mask to the right to recover mask0
             }
             else
@@ -212,7 +205,7 @@ namespace Pngcs
             }
             for( int j=iminfo.SamplesPerRow-1 , i=iminfo.SamplesPerRowPacked-1 ; j>=0 ; j-- )
             {
-                v = (src[i] & mask) >> offset;
+                v = (src[i] & mask)>>offset;
                 if( scale ) v <<= scalefactor;
                 dst[j] = (byte)v;
                 mask <<= bitDepth;
@@ -239,12 +232,12 @@ namespace Pngcs
             v0 = src[0]; // first value is special
             dst[0] = 0;
             if( scaled ) v0 >>= scalefactor;
-            v0 = (byte)((v0 & mask0) << offset);
+            v0 = (byte)((v0 & mask0)<<offset);
             for( int i=0 , j=0 ; j<iminfo.SamplesPerRow ; j++ )
             {
                 v = src[j];
                 if( scaled ) v >>= scalefactor;
-                dst[i] |= (byte)((v & mask0) << offset);
+                dst[i] |= (byte)((v & mask0)<<offset);
                 offset -= bitDepth;
                 if( offset<0 )
                 {

@@ -1,68 +1,60 @@
-namespace Pngcs.Chunks {
-
-    using Pngcs;
-    using System;
-    using System.Collections;
-    using System.Collections.Generic;
-    using System.ComponentModel;
-    using System.IO;
-    using System.Runtime.CompilerServices;
-
-
+namespace Pngcs.Chunks
+{
     /// <summary>
     /// hIST chunk, see http://www.w3.org/TR/PNG/#11hIST
     /// Only for palette images
     /// </summary>
-    public class PngChunkHIST : PngChunkSingle {
-        public readonly static String ID = ChunkHelper.hIST;
+    public class PngChunkHIST : PngChunkSingle
+    {
 
-        private int[] hist = new int[0]; // should have same lenght as palette
+        public readonly static string ID = ChunkHelper.hIST;
 
-        public PngChunkHIST(ImageInfo info)
-            : base(ID, info) { }
+        int[] hist = new int[0]; // should have same lenght as palette
 
-        public override ChunkOrderingConstraint GetOrderingConstraint() {
-            return ChunkOrderingConstraint.AFTER_PLTE_BEFORE_IDAT;
+        public PngChunkHIST ( ImageInfo info )
+            : base( ID , info )
+        {
+
         }
 
-        public override ChunkRaw CreateRawChunk() {
-            ChunkRaw c = null;
-            if (!ImgInfo.Indexed)
-                throw new PngjException("only indexed images accept a HIST chunk");
+        public override ChunkOrderingConstraint GetOrderingConstraint () => ChunkOrderingConstraint.AFTER_PLTE_BEFORE_IDAT;
 
-            c = createEmptyChunk(hist.Length * 2, true);
-            for (int i = 0; i < hist.Length; i++) {
-                PngHelperInternal.WriteInt2tobytes(hist[i], c.Data, i * 2);
+        public override ChunkRaw CreateRawChunk ()
+        {
+            ChunkRaw chunk = null;
+            if( !ImgInfo.Indexed ) throw new System.Exception("only indexed images accept a HIST chunk");
+            chunk = createEmptyChunk( hist.Length*2 , true );
+            byte[] data = chunk.Data;
+            for( int i=0 ; i<hist.Length ; i++ )
+            {
+                PngHelperInternal.WriteInt2tobytes( hist[i] , data , i*2 );
             }
-            return c;
+            return chunk;
         }
 
-        public override void ParseFromRaw(ChunkRaw c) {
-            if (!ImgInfo.Indexed)
-                throw new PngjException("only indexed images accept a HIST chunk");
-            int nentries = c.Data.Length / 2;
+        public override void ParseFromRaw ( ChunkRaw chunk )
+        {
+            if( !ImgInfo.Indexed ) throw new System.Exception("only indexed images accept a HIST chunk");
+            byte[] data = chunk.Data;
+            int nentries = data.Length/2;
             hist = new int[nentries];
-            for (int i = 0; i < hist.Length; i++) {
-                hist[i] = PngHelperInternal.ReadInt2fromBytes(c.Data, i * 2);
+            for( int i=0 ; i<hist.Length ; i++ )
+            {
+                hist[i] = PngHelperInternal.ReadInt2fromBytes( data , i*2 );
             }
         }
 
-        public override void CloneDataFromRead(PngChunk other) {
+        public override void CloneDataFromRead ( PngChunk other)
+        {
             PngChunkHIST otherx = (PngChunkHIST)other;
             hist = new int[otherx.hist.Length];
-            System.Array.Copy((Array)(otherx.hist), 0, (Array)(this.hist), 0, otherx.hist.Length);
+            System.Array.Copy( otherx.hist , 0 , this.hist , 0 , otherx.hist.Length );
         }
 
-        public int[] GetHist() {
-            return hist;
-        }
-        /// <summary>
-        /// should have same length as palette
-        /// </summary>
-        /// <param name="hist"></param>
-        public void SetHist(int[] hist) {
-            this.hist = hist;
-        }
+        public int[] GetHist () => hist;
+
+        /// <summary> should have same length as palette </summary>
+        public void SetHist ( int[] hist ) => this.hist = hist;
 
     }
 }
