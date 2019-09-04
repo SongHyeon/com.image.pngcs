@@ -1,9 +1,11 @@
-﻿namespace Pngcs
+﻿using IO = System.IO;
+
+namespace Pngcs
 {
     class BufferedStreamFeeder
     {
         
-        System.IO.Stream _stream;
+        IO.Stream _stream;
         byte[] buf;
         int pendinglen; // bytes read and stored in buf that have not yet still been fed to IBytesConsumer
         int offset;
@@ -12,13 +14,13 @@
         bool failIfNoFeed = false;
         const int DEFAULTSIZE = 8192;
 
-       	public BufferedStreamFeeder ( System.IO.Stream ist )
+       	public BufferedStreamFeeder ( IO.Stream ist )
            : this( ist , DEFAULTSIZE )
         {
 
 	    }
 
-    	public BufferedStreamFeeder ( System.IO.Stream ist , int bufsize )
+    	public BufferedStreamFeeder ( IO.Stream ist , int bufsize )
         {
 	    	this._stream = ist;
 	    	buf = new byte[ bufsize ];
@@ -26,7 +28,7 @@
 
 
         /// <summary> Stream from which bytes are read </summary>
-        public System.IO.Stream getStream () => _stream;
+        public IO.Stream getStream () => _stream;
         
         /// <summary>
         /// Feeds bytes to the consumer 
@@ -49,7 +51,7 @@
                     pendinglen -= n;
                 }
             }
-            if( n<1 && failIfNoFeed ) { throw new System.IO.IOException("failed feed bytes"); }
+            if( n<1 && failIfNoFeed ) { throw new IO.IOException("failed feed bytes"); }
             return n;
         }
 
@@ -78,7 +80,7 @@
                     close();
                 }
             }
-            catch( System.IO.IOException e ) { throw e; }
+            catch( IO.IOException e ) { throw e; }
         }
 
         public bool hasMoreToFeed ()
@@ -101,11 +103,11 @@
                 if( _stream!=null && closeStream )
                     _stream.Close();
             }
-            catch( System.Exception e ) { PngHelperInternal.Log( "Exception closing stream" , e ); }
+            catch( System.Exception e ) { UnityEngine.Debug.LogException(e); }
             _stream = null;
         }
 
-       	public void setInputStream ( System.IO.Stream ist )// to reuse this object
+       	public void setInputStream ( IO.Stream ist )// to reuse this object
         {
 		    this._stream = ist;
 		    eof = false;

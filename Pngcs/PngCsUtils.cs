@@ -1,45 +1,26 @@
 ﻿namespace Pngcs
 {
-    /// <summary>
-    /// Utility functions for C# porting
-    /// </summary>
+    /// <summary> Utility functions for C# porting </summary>
     internal class PngCsUtils
     {
 
-        internal unsafe static bool UnSafeEquals ( byte[] strA , byte[] strB )
+        // Copyright (c) 2008-2013 Hafthor Stefansson
+        // Distributed under the MIT/X11 software license
+        // Ref: http://www.opensource.org/licenses/mit-license.php.
+        internal static unsafe bool UnSafeEquals ( byte[] A , byte[] B )
         {
-            int length = strA.Length;
-            if( length!=strB.Length ) return false;
-            fixed( byte* str = strA )
+            if( A==B ) return true;
+            if( A==null || B==null || A.Length!=B.Length ) return false;
+            fixed( byte* a=A , b=B )
             {
-                byte* chPtr = str;
-                fixed( byte* str2 = strB )
-                {
-                    byte* chPtr2 = str2;
-                    byte* chPtr3 = chPtr;
-                    byte* chPtr4 = chPtr2;
-                    while( length>=10 )
-                    {
-                        if( (((*(((int*)chPtr3))!=*(((int*)chPtr4))) || (*(((int*)(chPtr3+2)))!=*(((int*)(chPtr4+2))))) || ((*(((int*)(chPtr3+4)))!=*(((int*)(chPtr4+4)))) || (*(((int*)(chPtr3+6)))!=*(((int*)(chPtr4+6)))))) || (*(((int*)(chPtr3+8)))!=*(((int*)(chPtr4+8)))) )
-                        {
-                            break;
-                        }
-                        chPtr3 += 10;
-                        chPtr4 += 10;
-                        length -= 10;
-                    }
-                    while( length>0 )
-                    {
-                        if( *(((int*)chPtr3))!=*(((int*)chPtr4)) )
-                        {
-                            break;
-                        }
-                        chPtr3 += 2;
-                        chPtr4 += 2;
-                        length -= 2;
-                    }
-                    return length<=0;
-                }
+                byte* x1=a, x2=b;
+                int l = A.Length;
+                for( int i=0 ; i<l/8 ; i++, x1+=8, x2+=8 )
+                if( *((long*)x1)!=*((long*)x2) ) return false;
+                if( (l & 4)!=0 ) { if( *((int*)x1)!=*((int*)x2) ) return false; x1+=4; x2+=4; }
+                if( (l & 2)!=0 ) { if( *((short*)x1)!=*((short*)x2) ) return false; x1+=2; x2+=2; }
+                if( (l & 1)!=0 ) if( *((byte*)x1) != *((byte*)x2) ) return false;
+                return true;
             }
         }
 

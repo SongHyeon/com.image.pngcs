@@ -11,9 +11,7 @@ namespace Pngcs
         [System.ThreadStatic]
         static Zlib.CRC32 crc32Engine = null;
 
-        /// <summary>
-        /// thread-singleton crc engine 
-        /// </summary>
+        /// <summary> thread-singleton crc engine </summary>
         public static Zlib.CRC32 GetCRC ()
         {
             if( crc32Engine==null) crc32Engine = new Zlib.CRC32();
@@ -25,16 +23,14 @@ namespace Pngcs
         public static System.Text.Encoding charsetLatin1 = System.Text.Encoding.GetEncoding("ISO-8859-1"); // charset
         public static System.Text.Encoding charsetUtf8 = System.Text.Encoding.GetEncoding("UTF-8"); // charset used for some chunks
 
-        public static bool DEBUG = false;
-
         public static int DoubleToInt100000 ( double d ) => (int)( d*100000.0 + 0.5 );
 
         public static double IntToDouble100000 ( int i ) => i/100000.0;
 
-        public static void WriteInt2 ( IO.Stream os , int n )
+        public static void WriteInt2 ( IO.Stream ostream , int n )
         {
             byte[] temp = { (byte)((n>>8) & 0xff), (byte)(n & 0xff) };
-            WriteBytes( os , temp );
+            WriteBytes( ostream , temp );
         }
 
         /// <summary> -1 si eof </summary>
@@ -67,9 +63,9 @@ namespace Pngcs
 
         public static int ReadInt1fromByte ( byte[] b , int offset ) => (b[offset] & 0xff);
 
-        public static int ReadInt2fromBytes ( byte[] b , int offset ) => ((b[offset] & 0xff)<<16) | ((b[offset + 1] & 0xff));
+        public static int ReadInt2fromBytes ( byte[] b , int offset ) => ((b[offset] & 0xff)<<16) | ((b[offset+1] & 0xff));
 
-        public static int ReadInt4fromBytes ( byte[] b , int offset ) => ((b[offset] & 0xff)<<24) | ((b[offset + 1] & 0xff)<<16) | ((b[offset + 2] & 0xff)<<8) | (b[offset + 3] & 0xff);
+        public static int ReadInt4fromBytes ( byte[] b , int offset ) => ((b[offset] & 0xff)<<24) | ((b[offset+1] & 0xff)<<16) | ((b[offset+2] & 0xff)<<8) | (b[offset+3] & 0xff);
 
         public static void WriteInt2tobytes ( int n , byte[] b , int offset )
         {
@@ -85,11 +81,11 @@ namespace Pngcs
             b[offset + 3] = (byte)(n & 0xff);
         }
 
-        public static void WriteInt4 ( IO.Stream os , int n )
+        public static void WriteInt4 ( IO.Stream ostream , int n )
         {
             byte[] temp = new byte[4];
             WriteInt4tobytes( n , temp , 0 );
-            WriteBytes( os , temp );
+            WriteBytes( ostream , temp );
             //Console.WriteLine("writing int " + n + " b=" + (sbyte)temp[0] + "," + (sbyte)temp[1] + "," + (sbyte)temp[2] + "," + (sbyte)temp[3]);
         }
 
@@ -112,7 +108,7 @@ namespace Pngcs
             catch( IO.IOException e ) { throw new IO.IOException("error reading", e); }
         }
 
-        public static void SkipBytes ( IO.Stream ist , int len )
+        public static void SkipBytes ( IO.Stream istream , int len )
         {
             byte[] buf = new byte[8192 * 4];
             int read, remain = len;
@@ -120,7 +116,7 @@ namespace Pngcs
             {
                 while( remain>0 )
                 {
-                    read = ist.Read( buf , 0 , remain>buf.Length ? buf.Length : remain );
+                    read = istream.Read( buf , 0 , remain>buf.Length ? buf.Length : remain );
                     if( read<0 ) throw new IO.IOException("error reading (skipping) : EOF");
                     remain -= read;
                 }
@@ -128,20 +124,20 @@ namespace Pngcs
             catch (IO.IOException e) { throw new IO.IOException("error reading (skipping)", e); }
         }
 
-        public static void WriteBytes ( IO.Stream os , byte[] b )
+        public static void WriteBytes ( IO.Stream ostream , byte[] b )
         {
             try
             {
-                os.Write(b, 0, b.Length);
+                ostream.Write(b, 0, b.Length);
             }
             catch (IO.IOException e) { throw (e); }
         }
 
-        public static void WriteBytes ( IO.Stream os , byte[] b , int offset , int n )
+        public static void WriteBytes ( IO.Stream ostream , byte[] b , int offset , int n )
         {
             try
             {
-                os.Write( b , offset , n );
+                ostream.Write( b , offset , n );
             }
             catch (IO.IOException e) { throw e; }
         }
@@ -155,25 +151,26 @@ namespace Pngcs
             catch (IO.IOException e) { throw e; }
         }
 
-        public static void WriteByte ( IO.Stream os , byte b )
+        public static void WriteByte ( IO.Stream ostream , byte b )
         {
             try
             {
-                os.WriteByte( (byte)b );
+                ostream.WriteByte( (byte)b );
             }
             catch (IO.IOException e) { throw e; }
         }
 
         // a = left, b = above, c = upper left
-        public static int UnfilterRowPaeth ( int r , int a , int b , int c ) => (r + FilterPaethPredictor(a, b, c)) & 0xFF;
+        public static int UnfilterRowPaeth ( int r , int a , int b , int c ) => (r+FilterPaethPredictor(a,b,c)) & 0xFF;
 
-        public static int FilterPaethPredictor(int a, int b, int c) {
+        public static int FilterPaethPredictor ( int a , int b , int c )
+        {
             // from http://www.libpng.org/pub/png/spec/1.2/PNG-Filters.html
             // a = left, b = above, c = upper left
             int p = a + b - c;// ; initial estimate
-            int pa = p>=a ? p - a : a - p;
-            int pb = p>=b ? p - b : b - p;
-            int pc = p>=c ? p - c : c - p;
+            int pa = p>=a ? p-a : a-p;
+            int pb = p>=b ? p-b : b-p;
+            int pc = p>=c ? p-c : c-p;
             // ; return nearest of a,b,c,
             // ; breaking ties in order a,b,c.
             if( pa<=pb && pa<=pc ) return a;
@@ -181,25 +178,9 @@ namespace Pngcs
             else return c;
         }
 
+        public static void InitCrcForTests ( PngReader reader ) => reader.InitCrctest();
 
-        public static void Logdebug ( string msg )
-        {
-            if( DEBUG )
-            {
-                UnityEngine.Debug.Log( msg );
-            }
-        }
+        public static long GetCrctestVal ( PngReader reader ) => reader.GetCrctestVal();
 
-
-        public static void InitCrcForTests ( PngReader pngr ) => pngr.InitCrctest();
-
-        public static long GetCrctestVal ( PngReader pngr ) => pngr.GetCrctestVal();
-
-        internal static void Log ( string p , System.Exception e )
-        {
-            UnityEngine.Debug.LogException(e);
-            UnityEngine.Debug.LogError(p);
-        }
-        
     }
 }
