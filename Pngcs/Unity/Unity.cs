@@ -490,7 +490,7 @@ namespace Pngcs.Unity
                         {
                             for( int col=0 ; col<results.width ; col++ )
                             {
-                                var color = new Color();
+                                var color = new Color{};
                                 for( int ch=0 ; ch<channels ; ch++ )
                                 {
                                     int raw = scanline[ col * channels + ch ];
@@ -559,32 +559,74 @@ namespace Pngcs.Unity
                 results.textureFormatInfered = GetTextureFormat( bitDepth , channels );
                 
                 //create pixel array:
-                for( int row=0 ; row<results.height ; row++ )
+                if( bitDepth>1 )
                 {
-                    ImageLine imageLine = reader.ReadRowInt( row );
-                    var scanline = imageLine.Scanline;
-                    if( imageLine.SampleType==ImageLine.ESampleType.INT )
+                    for( int row=0 ; row<results.height ; row++ )
                     {
-                        for( int col=0 ; col<results.width ; col++ )
+                        ImageLine imageLine = reader.ReadRowInt( row );
+                        var scanline = imageLine.Scanline;
+                        if( imageLine.SampleType==ImageLine.ESampleType.INT )
                         {
-                            var color = new Color();
-                            for( int ch=0 ; ch<channels ; ch++ )
+                            for( int col=0 ; col<results.width ; col++ )
                             {
-                                int raw = scanline[ col * channels + ch ];
-                                float rawMax = GetBitDepthMaxValue( bitDepth );
-                                float value = (float)raw / rawMax;
-
-                                //
-                                if( ch==0 ) { color.r = value; }
-                                else if( ch==1 ) { color.g = value; }
-                                else if( ch==2 ) { color.b = value; }
-                                else if( ch==3 ) { color.a = value; }
-                                else { throw new System.Exception( $"channel { ch } not implemented" ); }
+                                Color color;
+                                float max = GetBitDepthMaxValue( bitDepth );
+                                if( channels==4 )
+                                {
+                                    color = new Color{
+                                        r = (float)scanline[col*channels+0] / max ,
+                                        g = (float)scanline[col*channels+1] / max ,
+                                        b = (float)scanline[col*channels+2] / max ,
+                                        a = (float)scanline[col*channels+3] / max
+                                    };
+                                }
+                                else if( channels==3 )
+                                {
+                                    color = new Color{
+                                        r = (float)scanline[col*channels+0] / max ,
+                                        g = (float)scanline[col*channels+1] / max ,
+                                        b = (float)scanline[col*channels+2] / max
+                                    };
+                                }
+                                else if( channels==2 )
+                                {
+                                    color = new Color{
+                                        r = (float)scanline[col*channels+0] / max ,
+                                        g = (float)scanline[col*channels+1] / max
+                                    };
+                                }
+                                else if( channels==1 )
+                                {
+                                    color = new Color{
+                                        r = (float)scanline[ col * channels + 0 ] / max
+                                    };
+                                }
+                                else { throw new System.Exception( $"{channels} channels not implemented" ); }
+                                results.pixels[ IndexPngToTexture( row , col , results.height , results.width ) ] = color;
                             }
-                            results.pixels[ IndexPngToTexture( row , col , results.height , results.width ) ] = color;
+                        }
+                        else { throw new System.Exception( $"imageLine.SampleType { imageLine.SampleType } not implemented" ); }
+                    }
+                }
+                else
+                {
+                    if( channels!=1 ) throw new System.Exception( $"{channels} channels not implemented" );
+                    for( int row=0 ; row<results.height ; row++ )
+                    {
+                        ImageLine imageLine = reader.ReadRowByte( row );
+                        var scanline = imageLine.ScanlineB;
+                        for( int col=0 ; col<results.width/8 ; col++ )
+                        {
+                            for( int bit=0 ; bit<8 ; bit++ )
+                            {
+                                Color color = new Color{
+                                    r = BIT( bit , scanline[ col ] )
+                                };
+                                int BIT ( int index , byte b ) => (b&(1<<index))!=0 ? 1<<index : 0;
+                                results.pixels[ IndexPngToTexture( row , col*8+bit , results.height , results.width ) ] = color;
+                            }
                         }
                     }
-                    else { throw new System.Exception( $"imageLine.SampleType { imageLine.SampleType } not implemented" ); }
                 }
             }
             catch ( System.Exception ex )
@@ -687,6 +729,7 @@ namespace Pngcs.Unity
         {
             switch ( bitDepth*10 + channels )
             {
+                case 11: return TextureFormat.R8;
                 //case 43: return TextureFormat.DXT1;//indexed colors not implemented yet
                 case 44: return TextureFormat.RGBA4444;
                 //case 84: return TextureFormat.DXT5;//no way to infer between DXT5 and RGBA32, prefer one for runtime use
