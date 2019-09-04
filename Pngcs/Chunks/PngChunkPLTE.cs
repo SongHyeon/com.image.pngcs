@@ -4,7 +4,9 @@ namespace Pngcs.Chunks
     /// PLTE Palette chunk: this is the only optional critical chunk
     /// http://www.w3.org/TR/PNG/#11PLTE
     /// </summary>
-    public class PngChunkPLTE : PngChunkSingle {
+    public class PngChunkPLTE : PngChunkSingle
+    {
+
         public const string ID = ChunkHelper.PLTE;
 
         int nentries = 0;
@@ -64,8 +66,7 @@ namespace Pngcs.Chunks
         public void SetNentries ( int nentries )
         {
             this.nentries = nentries;
-            if( nentries<1 || nentries>256 )
-                throw new System.Exception($"invalid pallette - nentries={nentries}");
+            if( nentries<1 || nentries>256 ) throw new System.Exception($"invalid pallette - nentries={nentries}");
             if( entries==null || entries.Length!=nentries )// alloc
                 entries = new int[nentries];
         }
@@ -75,27 +76,20 @@ namespace Pngcs.Chunks
         public void SetEntry ( int n , int r , int g , int b ) => entries[n] = ((r<<16) | (g<<8) | b);
 
         /// <summary> as packed RGB8 </summary>
-        /// <param name="n"></param>
         public int GetEntry ( int n ) => entries[n];
 
        
         /// <summary> Gets n'th entry, filling 3 positions of given array, at given offset </summary>
-        /// <param name="index"></param>
-        /// <param name="rgb"></param>
-        /// <param name="offset"></param>
-        public void GetEntryRgb(int index, int[] rgb, int offset) {
+        public void GetEntryRgb ( int index , int[] rgb , int offset )
+        {
             int v = entries[index];
-            rgb[offset ] = ((v & 0xff0000)>>16);
-            rgb[offset + 1] = ((v & 0xff00)>>8);
-            rgb[offset + 2] = (v & 0xff);
+            rgb[offset] = ((v & 0xff0000)>>16);
+            rgb[offset+1] = ((v & 0xff00)>>8);
+            rgb[offset+2] = (v & 0xff);
         }
 
         /// <summary> shortcut: GetEntryRgb(index, int[] rgb, 0) </summary>
-        /// <param name="n"></param>
-        /// <param name="rgb"></param>
-        public void GetEntryRgb(int n, int[] rgb) {
-            GetEntryRgb(n, rgb, 0);
-        }
+        public void GetEntryRgb ( int n , int[] rgb ) => GetEntryRgb( n , rgb , 0 );
 
         /// <summary> minimum allowed bit depth, given palette size </summary>
         /// <returns>1-2-4-8</returns>
