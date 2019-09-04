@@ -481,35 +481,7 @@ namespace Pngcs.Unity
                 
                 //create pixel array:
                 await Task.Run( ()=> {
-
-                    for( int row=0 ; row<results.height ; row++ )
-                    {
-                        ImageLine imageLine = reader.ReadRowInt( row );
-                        var scanline = imageLine.Scanline;
-                        if( imageLine.SampleType==ImageLine.ESampleType.INT )
-                        {
-                            for( int col=0 ; col<results.width ; col++ )
-                            {
-                                var color = new Color{};
-                                for( int ch=0 ; ch<channels ; ch++ )
-                                {
-                                    int raw = scanline[ col * channels + ch ];
-                                    float rawMax = GetBitDepthMaxValue( bitDepth );
-                                    float value = (float)raw / rawMax;
-
-                                    //
-                                    if( ch==0 ) { color.r = value; }
-                                    else if( ch==1 ) { color.g = value; }
-                                    else if( ch==2 ) { color.b = value; }
-                                    else if( ch==3 ) { color.a = value; }
-                                    else { throw new System.Exception( $"channel { ch } not implemented" ); }
-                                }
-                                results.pixels[ IndexPngToTexture( row , col , results.height , results.width ) ] = color;
-                            }
-                        }
-                        else { throw new System.Exception( $"imageLine.SampleType { imageLine.SampleType } not implemented" ); }
-                    }
-
+                    ReadSamples( reader , results );
                 } );
             }
             catch ( System.Exception ex )
@@ -559,75 +531,7 @@ namespace Pngcs.Unity
                 results.textureFormatInfered = GetTextureFormat( bitDepth , channels );
                 
                 //create pixel array:
-                if( bitDepth>1 )
-                {
-                    for( int row=0 ; row<results.height ; row++ )
-                    {
-                        ImageLine imageLine = reader.ReadRowInt( row );
-                        var scanline = imageLine.Scanline;
-                        if( imageLine.SampleType==ImageLine.ESampleType.INT )
-                        {
-                            for( int col=0 ; col<results.width ; col++ )
-                            {
-                                Color color;
-                                float max = GetBitDepthMaxValue( bitDepth );
-                                if( channels==4 )
-                                {
-                                    color = new Color{
-                                        r = (float)scanline[col*channels+0] / max ,
-                                        g = (float)scanline[col*channels+1] / max ,
-                                        b = (float)scanline[col*channels+2] / max ,
-                                        a = (float)scanline[col*channels+3] / max
-                                    };
-                                }
-                                else if( channels==3 )
-                                {
-                                    color = new Color{
-                                        r = (float)scanline[col*channels+0] / max ,
-                                        g = (float)scanline[col*channels+1] / max ,
-                                        b = (float)scanline[col*channels+2] / max
-                                    };
-                                }
-                                else if( channels==2 )
-                                {
-                                    color = new Color{
-                                        r = (float)scanline[col*channels+0] / max ,
-                                        g = (float)scanline[col*channels+1] / max
-                                    };
-                                }
-                                else if( channels==1 )
-                                {
-                                    color = new Color{
-                                        r = (float)scanline[ col * channels + 0 ] / max
-                                    };
-                                }
-                                else { throw new System.Exception( $"{channels} channels not implemented" ); }
-                                results.pixels[ IndexPngToTexture( row , col , results.height , results.width ) ] = color;
-                            }
-                        }
-                        else { throw new System.Exception( $"imageLine.SampleType { imageLine.SampleType } not implemented" ); }
-                    }
-                }
-                else
-                {
-                    if( channels!=1 ) throw new System.Exception( $"{channels} channels not implemented" );
-                    for( int row=0 ; row<results.height ; row++ )
-                    {
-                        ImageLine imageLine = reader.ReadRowByte( row );
-                        var scanline = imageLine.ScanlineB;
-                        for( int col=0 ; col<results.width/8 ; col++ )
-                        {
-                            for( int bit=0 ; bit<8 ; bit++ )
-                            {
-                                Color color = new Color{
-                                    r = BIT( bit , scanline[ col ] )
-                                };
-                                int BIT ( int index , byte b ) => (b&(1<<index))!=0 ? 1<<index : 0;
-                                results.pixels[ IndexPngToTexture( row , col*8+bit , results.height , results.width ) ] = color;
-                            }
-                        }
-                    }
-                }
+                ReadSamples( reader , results );
             }
             catch ( System.Exception ex )
             {
@@ -645,6 +549,84 @@ namespace Pngcs.Unity
                 if( reader!=null ) reader.End();
             }
             return results;
+        }
+
+        /// <summary> Reads samples using given reader </summary>
+        static void ReadSamples ( PngReader reader , ReadColorsResult results )
+        {
+            var info = reader.ImgInfo;
+            int channels = info.Channels;
+            int bitDepth = info.BitDepth;
+            if( info.Indexed ) { throw new System.NotImplementedException( "indexed png not implemented" ); }
+            if( bitDepth>1 )
+            {   
+                for( int row=0 ; row<results.height ; row++ )
+                {
+                    ImageLine imageLine = reader.ReadRowInt( row );
+                    var scanline = imageLine.Scanline;
+                    if( imageLine.SampleType==ImageLine.ESampleType.INT )
+                    {
+                        for( int col=0 ; col<results.width ; col++ )
+                        {
+                            Color color;
+                            float max = GetBitDepthMaxValue( bitDepth );
+                            if( channels==4 )
+                            {
+                                color = new Color{
+                                    r = (float)scanline[col*channels+0] / max ,
+                                    g = (float)scanline[col*channels+1] / max ,
+                                    b = (float)scanline[col*channels+2] / max ,
+                                    a = (float)scanline[col*channels+3] / max
+                                };
+                            }
+                            else if( channels==3 )
+                            {
+                                color = new Color{
+                                    r = (float)scanline[col*channels+0] / max ,
+                                    g = (float)scanline[col*channels+1] / max ,
+                                    b = (float)scanline[col*channels+2] / max
+                                };
+                            }
+                            else if( channels==2 )
+                            {
+                                color = new Color{
+                                    r = (float)scanline[col*channels+0] / max ,
+                                    g = (float)scanline[col*channels+1] / max
+                                };
+                            }
+                            else if( channels==1 )
+                            {
+                                color = new Color{
+                                    r = (float)scanline[ col * channels + 0 ] / max
+                                };
+                            }
+                            else { throw new System.Exception( $"{channels} channels not implemented" ); }
+                            results.pixels[ IndexPngToTexture( row , col , results.height , results.width ) ] = color;
+                        }
+                    }
+                    else { throw new System.Exception( $"imageLine.SampleType { imageLine.SampleType } not implemented" ); }
+                }
+            }
+            else
+            {
+                if( channels!=1 ) throw new System.Exception( $"{channels} channels not implemented" );
+                for( int row=0 ; row<results.height ; row++ )
+                {
+                    ImageLine imageLine = reader.ReadRowByte( row );
+                    var scanline = imageLine.ScanlineB;
+                    for( int col=0 ; col<results.width/8 ; col++ )
+                    {
+                        for( int bit=0 ; bit<8 ; bit++ )
+                        {
+                            Color color = new Color{
+                                r = BIT( bit , scanline[ col ] )
+                            };
+                            int BIT ( int index , byte b ) => (b&(1<<index))!=0 ? 1<<index : 0;
+                            results.pixels[ IndexPngToTexture( row , col*8+bit , results.height , results.width ) ] = color;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary> Creates ImageInfo object based on given png </summary>
