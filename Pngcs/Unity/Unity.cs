@@ -627,8 +627,8 @@ namespace Pngcs.Unity
                                 byte b = scanline[ col ];
                                 int hiNybble = (b & 0xF0) >> 4; //Left hand nybble
                                 int loNyblle = (b & 0x0F);      //Right hand nybble
-                                float val1 = (max-(float)hiNybble) / max;
-                                float val2 = (max-(float)loNyblle) / max;
+                                float val1 = (float)hiNybble / max;
+                                float val2 = (float)loNyblle / max;
                                 Color color_1 = new Color{
                                     r = val1 ,
                                     g = val1 ,
