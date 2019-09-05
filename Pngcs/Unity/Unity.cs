@@ -557,6 +557,7 @@ namespace Pngcs.Unity
             var info = reader.ImgInfo;
             int channels = info.Channels;
             int bitDepth = info.BitDepth;
+            float max = GetBitDepthMaxValue( bitDepth );
             if( !info.Indexed )
             {
                 if( !info.Packed )
@@ -603,7 +604,6 @@ namespace Pngcs.Unity
                             }
                             else { throw new System.Exception( $"{channels} channels not implemented" ); }
 
-                            float max = GetBitDepthMaxValue( bitDepth );
                             Color color = new Color{
                                 r = (float)rgba.R / max ,
                                 g = (float)rgba.G / max ,
@@ -618,7 +618,33 @@ namespace Pngcs.Unity
                 {
                     if( bitDepth==4 )
                     {
-                        throw new System.Exception( $"bit depth {bitDepth} not implemented" );
+                        for( int row=0 ; row<results.height ; row++ )
+                        {
+                            ImageLine imageLine = reader.ReadRowByte( row );
+                            var scanline = imageLine.ScanlineB;
+                            for( int col=0 ; col<results.width/2 ; col++ )
+                            {
+                                byte b = scanline[ col ];
+                                int hiNybble = (b & 0xF0) >> 4; //Left hand nybble
+                                int loNyblle = (b & 0x0F);      //Right hand nybble
+                                float val1 = (max-(float)hiNybble) / max;
+                                float val2 = (max-(float)loNyblle) / max;
+                                Color color_1 = new Color{
+                                    r = val1 ,
+                                    g = val1 ,
+                                    b = val1 ,
+                                    a = val1
+                                };
+                                Color color_2 = new Color{
+                                    r = val2 ,
+                                    g = val2 ,
+                                    b = val2 ,
+                                    a = val2
+                                };
+                                results.pixels[ IndexPngToTexture( row , col*2+0 , results.height , results.width ) ] = color_1;
+                                results.pixels[ IndexPngToTexture( row , col*2+1 , results.height , results.width ) ] = color_2;
+                            }
+                        }
                     }
                     else if( bitDepth==2 )
                     {
@@ -626,18 +652,18 @@ namespace Pngcs.Unity
                     }
                     else if( bitDepth==1 )
                     {
+                        int BIT ( int index , byte b ) => (b&(1<<index))!=0 ? 1<<index : 0;
                         for( int row=0 ; row<results.height ; row++ )
                         {
                             ImageLine imageLine = reader.ReadRowByte( row );
                             var scanline = imageLine.ScanlineB;
+                            
                             for( int col=0 ; col<results.width/8 ; col++ )
                             {
                                 for( int bit=0 ; bit<8 ; bit++ )
                                 {
-                                    Color color = new Color{
-                                        r = BIT( bit , scanline[ col ] )
-                                    };
-                                    int BIT ( int index , byte b ) => (b&(1<<index))!=0 ? 1<<index : 0;
+                                    float val = BIT( bit , scanline[ col ] );
+                                    Color color = new Color{ r = val , g = val , b = val , a = val };
                                     results.pixels[ IndexPngToTexture( row , col*8+bit , results.height , results.width ) ] = color;
                                 }
                             }
@@ -728,6 +754,7 @@ namespace Pngcs.Unity
             switch ( bitDepth*10 + channels )
             {
                 case 11: return TextureFormat.R8;
+                case 41: return TextureFormat.Alpha8;
                 //case 43: return TextureFormat.DXT1;//indexed colors not implemented yet
                 case 44: return TextureFormat.RGBA4444;
                 case 82: return TextureFormat.Alpha8;
