@@ -753,7 +753,7 @@ namespace Pngcs.Unity
         {
             switch ( bitDepth*10 + channels )
             {
-                case 11: return TextureFormat.R8;
+                case 11: return TextureFormat.Alpha8;
                 case 41: return TextureFormat.Alpha8;
                 //case 43: return TextureFormat.DXT1;//indexed colors not implemented yet
                 case 44: return TextureFormat.RGBA4444;
@@ -762,7 +762,7 @@ namespace Pngcs.Unity
                 case 84: return TextureFormat.RGBA32;
                 case 83: return TextureFormat.RGB24;
                 //case 81: return TextureFormat.Alpha8;//no way to infer between Alpha8 and R8, BUT Alpha8 was causing a problem, because grayscale 8bit channel seems to be saved as R in png (ie: reported as non-alpha image on read)
-                case 81: return TextureFormat.R8;
+                case 81: return TextureFormat.Alpha8;
                 case 161: return TextureFormat.R16;
                 //case 161: return TextureFormat.RHalf;//no way to infer between R16 and RHalf
                 case 163: return TextureFormat.RGB565;
