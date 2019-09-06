@@ -580,7 +580,7 @@ namespace Pngcs.Unity
                 {
                     for( int row=0 ; row<numRows ; row++ )
                     {
-                        ImageLine imageLine = reader.ReadRowByte( row );
+                        ImageLine imageLine = reader.ReadRow( row );
                             ProcessNByteRow( imageLine , pixels );
                     }
                 }
