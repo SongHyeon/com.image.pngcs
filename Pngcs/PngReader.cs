@@ -123,9 +123,10 @@ namespace Pngcs
         /// <summary> number of chunk group (0-6) last read, or currently reading </summary>
         /// <remarks>see ChunksList.CHUNK_GROUP_NNN</remarks>
         public int CurrentChunkGroup { get; private set; }
-        protected int rowNum = -1;
         
         /// <summary> Last read row number </summary>
+        protected int currentImageRow = -1;
+
         long offset = 0;  // offset in InputStream = bytes read
         int bytesChunksLoaded = 0; // bytes loaded from anciallary chunks
 
@@ -634,23 +635,23 @@ namespace Pngcs
         }
 
 
-        public ImageLines ReadRowsInt ( int rowOffset , int nRows , int rowStep )
+        public ImageLines ReadRowsInt ( int rowOffset , int imageRows , int rowStep )
         {
-            if( nRows<0 )
+            if( imageRows<0 )
             {
-                nRows = (ImgInfo.Rows - rowOffset) / rowStep;
+                imageRows = (ImgInfo.Rows - rowOffset) / rowStep;
             }
-            if( rowStep<1 || rowOffset<0 || nRows*rowStep+rowOffset>ImgInfo.Rows ) throw new IO.IOException("bad args");
-            ImageLines imlines = new ImageLines( ImgInfo , ImageLine.ESampleType.INT , unpackedMode , rowOffset , nRows , rowStep );
+            if( rowStep<1 || rowOffset<0 || imageRows*rowStep+rowOffset>ImgInfo.Rows ) throw new IO.IOException("bad args");
+            ImageLines imlines = new ImageLines( ImgInfo , ImageLine.ESampleType.INT , unpackedMode , rowOffset , imageRows , rowStep );
             if( !interlaced )
             {
                 for( int j=0; j<ImgInfo.Rows ; j++ )
                 {
                     int bytesread = ReadRowRaw(j); // read and perhaps discards
-                    int mrow = imlines.ImageRowToMatrixRowStrict(j);
-                    if( mrow>=0 )
+                    int matrixRow = imlines.ImageRowToMatrixRowStrict(j);
+                    if( matrixRow>=0 )
                     {
-                        decodeLastReadRowToInt( imlines.Scanlines[mrow] , bytesread );
+                        decodeLastReadRowToInt( imlines.Scanlines[matrixRow] , bytesread );
                     }
                 }
             }
@@ -664,36 +665,36 @@ namespace Pngcs
                     {
                         int bytesread = ReadRowRaw(i);
                         int j = deinterlacer.getCurrRowReal();
-                        int mrow = imlines.ImageRowToMatrixRowStrict(j);
-                        if( mrow>=0 )
+                        int matrixRow = imlines.ImageRowToMatrixRowStrict(j);
+                        if( matrixRow>=0 )
                         {
                             decodeLastReadRowToInt( buf , bytesread );
-                            deinterlacer.deinterlaceInt( buf , imlines.Scanlines[mrow] , !unpackedMode );
+                            deinterlacer.deinterlaceInt( buf , imlines.Scanlines[matrixRow] , !unpackedMode );
                         }
                     }
                 }
             }
-            End();
+            Dispose();
             return imlines;
         }
 
         public ImageLines ReadRowsInt () => ReadRowsInt( 0 , ImgInfo.Rows , 1 );
 
-        public ImageLines ReadRowsByte ( int rowOffset , int nRows , int rowStep )
+        public ImageLines ReadRowsByte ( int rowOffset , int imageRows , int rowStep )
         {
-            if( nRows<0 )
+            if( imageRows<0 )
             {
-                nRows = (ImgInfo.Rows - rowOffset) / rowStep;
+                imageRows = (ImgInfo.Rows - rowOffset) / rowStep;
             }
-            if( rowStep<1 || rowOffset<0 || nRows*rowStep+rowOffset>ImgInfo.Rows ) throw new IO.IOException("bad args");
-            ImageLines imlines = new ImageLines( ImgInfo , ImageLine.ESampleType.BYTE , unpackedMode , rowOffset , nRows , rowStep );
+            if( rowStep<1 || rowOffset<0 || imageRows*rowStep+rowOffset>ImgInfo.Rows ) throw new IO.IOException("bad args");
+            ImageLines imlines = new ImageLines( ImgInfo , ImageLine.ESampleType.BYTE , unpackedMode , rowOffset , imageRows , rowStep );
             if( !interlaced )
             {
                 for( int j=0 ; j<ImgInfo.Rows ; j++ )
                 {
                     int bytesread = ReadRowRaw(j); // read and perhaps discards
-                    int mrow = imlines.ImageRowToMatrixRowStrict(j);
-                    if( mrow>=0 ) decodeLastReadRowToByte( imlines.ScanlinesB[mrow] , bytesread );
+                    int matrixRow = imlines.ImageRowToMatrixRowStrict(j);
+                    if( matrixRow>=0 ) decodeLastReadRowToByte( imlines.ScanlinesB[matrixRow] , bytesread );
                 }
             }
             else
@@ -707,28 +708,28 @@ namespace Pngcs
                     {
                         int bytesread = ReadRowRaw(i);
                         int j = deinterlacer.getCurrRowReal();
-                        int mrow = imlines.ImageRowToMatrixRowStrict(j);
-                        if( mrow>=0 )
+                        int matrixRow = imlines.ImageRowToMatrixRowStrict(j);
+                        if( matrixRow>=0 )
                         {
                             decodeLastReadRowToByte( buf , bytesread );
-                            deinterlacer.deinterlaceByte( buf , imlines.ScanlinesB[mrow] , !unpackedMode );
+                            deinterlacer.deinterlaceByte( buf , imlines.ScanlinesB[matrixRow] , !unpackedMode );
                         }
                     }
                 }
             }
-            End();
+            Dispose();
             return imlines;
         }
 
         public ImageLines ReadRowsByte () => ReadRowsByte( 0 , ImgInfo.Rows , 1 );
 
-        int ReadRowRaw ( int nrow )
+        int ReadRowRaw ( int imageRow )
         {
-            if( nrow==0 && FirstChunksNotYetRead() )
+            if( imageRow==0 && FirstChunksNotYetRead() )
             {
                 ReadFirstChunks();
             }
-            if( nrow==0 && interlaced )
+            if( imageRow==0 && interlaced )
             {
                 System.Array.Clear( rowb , 0 , rowb.Length ); // new subimage: reset filters: this is enough, see the swap that happens lines
             }
@@ -736,29 +737,32 @@ namespace Pngcs
             int bytesRead = ImgInfo.BytesPerRow; // NOT including the filter byte
             if( interlaced )
             {
-                if( nrow<0 || nrow>deinterlacer.getRows() || (nrow!=0 && nrow!=deinterlacer.getCurrRowSubimg() + 1)) { throw new IO.IOException( $"invalid row in interlaced mode: { nrow }"); }
-                deinterlacer.setRow( nrow );
+                if( imageRow<0 || imageRow>deinterlacer.getRows() || (imageRow!=0 && imageRow!=deinterlacer.getCurrRowSubimg() + 1)) throw new IO.IOException($"invalid row in interlaced mode: {imageRow}");
+                deinterlacer.setRow( imageRow );
                 bytesRead = ( ImgInfo.BitspPixel * deinterlacer.getPixelsToRead() + 7 ) / 8;
-                if( bytesRead<1 ) { throw new System.Exception( "what's going on??" ); }
+                if( bytesRead<1 ) throw new System.Exception("what's going on??");
             }
             else
-            { // check for non interlaced
-                if( nrow<0 || nrow>=ImgInfo.Rows || nrow!=rowNum+1 ) { throw new IO.IOException( $"invalid row: { nrow }" ); }
+            {
+                // check for non interlaced
+                if( imageRow<0 || imageRow>=ImgInfo.Rows || imageRow!=currentImageRow+1 ) throw new IO.IOException( $"invalid row: {imageRow}" );
             }
-            rowNum = nrow;
+            currentImageRow = imageRow;
+
             // swap buffers
             byte[] tmp = rowb;
             rowb = rowbprev;
             rowbprev = tmp;
+
             // loads in rowbfilter "raw" bytes, with filter
             PngHelperInternal.ReadBytes(idatIstream, rowbfilter, 0, bytesRead + 1);
             offset = iIdatCstream.GetOffset();
-            if( offset<0 ) { throw new System.Exception( $"bad offset ?? { offset }"); }
-            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new IO.IOException( $"Reading IDAT: Maximum total bytes to read exceeeded: { MaxTotalBytesRead } offset:{ offset }" ); }
+            if( offset<0 ) throw new System.Exception($"bad offset ?? {offset}");
+            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) throw new IO.IOException($"Reading IDAT: Maximum total bytes to read exceeeded: {MaxTotalBytesRead} offset:{offset}");
             rowb[0] = 0;
             UnfilterRow(bytesRead);
             rowb[0] = rowbfilter[0];
-            if( (rowNum==ImgInfo.Rows-1 && interlaced==false) || (interlaced && deinterlacer.isAtLastRow()))
+            if( (currentImageRow==ImgInfo.Rows-1 && interlaced==false) || (interlaced && deinterlacer.isAtLastRow()) )
             {
                 ReadLastAndClose();
             }
@@ -776,23 +780,27 @@ namespace Pngcs
             try
             {
                 int r;
-                do { r = iIdatCstream.Read( rowbfilter , 0 , rowbfilter.Length ); }
+                do
+                {
+                    r = iIdatCstream.Read( rowbfilter , 0 , rowbfilter.Length );
+                }
                 while( r>=0 );
-            } catch( IO.IOException e ) { throw new IO.IOException( "error in raw read of IDAT" , e ); }
+            }
+            catch( IO.IOException e ) { throw new IO.IOException( "error in raw read of IDAT" , e ); }
             offset = iIdatCstream.GetOffset();
-            if( offset<0 ) { throw new System.Exception( $"bad offset ?? {offset}" ); }
-            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) { throw new IO.IOException( $"Reading IDAT: Maximum total bytes to read exceeeded: {MaxTotalBytesRead} offset:{offset}" ); }
+            if( offset<0 ) throw new System.Exception($"bad offset ?? {offset}");
+            if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) throw new IO.IOException($"Reading IDAT: Maximum total bytes to read exceeeded: {MaxTotalBytesRead} offset:{offset}");
             ReadLastAndClose();
         }
 
 
         // basic info
-        public override string ToString () => $"filename={ filename } { ImgInfo }";
+        public override string ToString () => $"filename={filename} {ImgInfo}";
 
-        public void End ()
         /// <summary> Normally this does nothing, but it can be used to force a premature closing </summary>
+        public void Dispose ()
         {
-            if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END )  Close();
+            if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END ) Close();
         }
 
         public bool IsInterlaced () => interlaced;
@@ -810,7 +818,7 @@ namespace Pngcs
 
         internal void InitCrctest () => this.crctest = new Zlib.Adler32();
 
-        void System.IDisposable.Dispose () => this.End();
+        void System.IDisposable.Dispose () => this.Dispose();
 
     }
 }

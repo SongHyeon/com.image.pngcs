@@ -10,7 +10,8 @@ namespace Pngcs
     {
         
         /// <summary> ImageInfo (readonly inmutable) </summary>
-        public ImageInfo ImgInfo { get; private set; }
+        public ImageInfo ImgInfo => _imgInfo;
+        readonly ImageInfo _imgInfo;
 
         /// <summary> Samples of an image line </summary>
         /// <remarks>
@@ -26,23 +27,28 @@ namespace Pngcs
         /// To convert a indexed line to RGB balues, see ImageLineHelper.PalIdx2RGB()
         /// (cant do the reverse)
         /// </remarks>
-        public int[] Scanline { get; private set; }
+        public int[] Scanline => _scanline;
+        readonly int[] _scanline;
 
         /// <summary> Same as Scanline, but with one byte per sample. Only one of Scanline and ScanlineB is valid - this depends on SampleType}
         /// </summary>
-        public byte[] ScanlineB { get; private set; }
+        public byte[] ScanlineB => _scanlineB;
+        readonly byte[] _scanlineB;
 
         /// <summary> tracks the current row number (from 0 to rows-1) </summary>
-        public int Rown { get; set; }
+        public int ImageRow => _imageRow;
+        readonly int _imageRow;
 
         internal readonly int channels; // copied from imgInfo, more handy
         internal readonly int bitDepth; // copied from imgInfo, more handy
 
-        public int ElementsPerRow { get; private set; }
         /// <summary> Hown many elements has the scanline array =imgInfo.samplePerRowPacked, if packed, imgInfo.samplePerRow elsewhere </summary>
+        public int ElementsPerRow => _elementsPerRow;
+        readonly int _elementsPerRow;
 
-        public int maxSampleVal { get; private set; }
         /// <summary> Maximum sample value that this line admits: typically 255; less if bitdepth less than 8, 65535 if 16bits </summary>
+        public int MaxSampleVal => _maxSampleVal;
+        readonly int _maxSampleVal;
 
         public enum ESampleType
         {
@@ -62,48 +68,36 @@ namespace Pngcs
         /// <summary> informational only ; filled by the reader </summary>
         public FilterType FilterUsed { get; set; }
 
-        public ImageLine ( ImageInfo imgInfo )
-            : this( imgInfo , ESampleType.INT , false )
-        {}
-
-        public ImageLine ( ImageInfo imgInfo , ESampleType stype )
-            : this( imgInfo , stype , false )
-        {}
-
         /// <summary> Constructs an ImageLine </summary>
         /// <param name="imgInfo">Inmutable copy of PNG ImageInfo</param>
         /// <param name="sampleType">Storage for samples:INT (default) or BYTE</param>
         /// <param name="unpackedMode">If true and bitdepth less than 8, samples are unpacked. This has no effect if biddepth 8 or 16</param>
-        public ImageLine ( ImageInfo imgInfo , ESampleType stype , bool unpackedMode )
-            : this( imgInfo , stype , unpackedMode , null , null )
-        {}
-
-        internal ImageLine ( ImageInfo imgInfo , ESampleType stype , bool unpackedMode , int[] sci , byte[] scb )
+        internal ImageLine ( ImageInfo imgInfo , ESampleType sampleType , bool unpackedMode , int[] scanLineInt , byte[] scanLineBytes , int imageRow )
         {
-            this.ImgInfo = imgInfo;
+            this._imgInfo = imgInfo;
             channels = imgInfo.Channels;
             this.bitDepth = imgInfo.BitDepth;
             this.FilterUsed = FilterType.FILTER_UNKNOWN;
-            this.SampleType = stype;
+            this.SampleType = sampleType;
             this.SamplesUnpacked = unpackedMode || !imgInfo.Packed;
-            ElementsPerRow = this.SamplesUnpacked ? imgInfo.SamplesPerRow : imgInfo.SamplesPerRowPacked;
-            if( stype==ESampleType.INT )
+            this._elementsPerRow = this.SamplesUnpacked ? imgInfo.SamplesPerRow : imgInfo.SamplesPerRowPacked;
+            this._imageRow = imageRow;
+            if( sampleType==ESampleType.INT )
             {
-                Scanline = sci!=null ? sci : new int[ ElementsPerRow ];
-                ScanlineB = null;
-                maxSampleVal = bitDepth==16 ? 0xFFFF : GetMaskForPackedFormatsLs( bitDepth );
+                _scanline = scanLineInt!=null ? scanLineInt : new int[ ElementsPerRow ];
+                _scanlineB = null;
+                this._maxSampleVal = bitDepth==16 ? 0xFFFF : GetMaskForPackedFormatsLs( bitDepth );
             }
-            else if( stype==ESampleType.BYTE )
+            else if( sampleType==ESampleType.BYTE )
             {
-                ScanlineB = scb!=null ? scb : new byte[ ElementsPerRow ];
-                Scanline = null;
-                maxSampleVal = bitDepth==16 ? 0xFF : GetMaskForPackedFormatsLs( bitDepth );
+                _scanlineB = scanLineBytes!=null ? scanLineBytes : new byte[ ElementsPerRow ];
+                _scanline = null;
+                this._maxSampleVal = bitDepth==16 ? 0xFF : GetMaskForPackedFormatsLs( bitDepth );
             }
             else
             {
                 throw new System.Exception("bad ImageLine initialization");
             }
-            this.Rown = -1;
         }
 
         static internal void unpackInplaceInt ( ImageInfo iminfo , int[] src , int[] dst , bool Scale )
@@ -255,7 +249,7 @@ namespace Pngcs
 
         public ImageLine unpackToNewImageLine ()
         {
-            ImageLine newline = new ImageLine( ImgInfo , SampleType , true );
+            ImageLine newline = new ImageLine( ImgInfo , SampleType , true , null , null , this.ImageRow );
             if( SampleType==ESampleType.INT ) unpackInplaceInt( ImgInfo , Scanline , newline.Scanline , false );
             else unpackInplaceByte( ImgInfo , ScanlineB , newline.ScanlineB , false );
             return newline;
@@ -263,7 +257,7 @@ namespace Pngcs
 
         public ImageLine packToNewImageLine ()
         {
-            ImageLine newline = new ImageLine( ImgInfo , SampleType , false );
+            ImageLine newline = new ImageLine( ImgInfo , SampleType , false , null , null , this.ImageRow );
             if( SampleType==ESampleType.INT ) packInplaceInt( ImgInfo , Scanline , newline.Scanline , false );
             else packInplaceByte( ImgInfo , ScanlineB , newline.ScanlineB , false );
             return newline;
@@ -278,7 +272,7 @@ namespace Pngcs
         public bool IsByte () => SampleType==ESampleType.BYTE;
 
 
-        public override string ToString () => $"row={Rown} cols={ImgInfo.Cols} bpc={ImgInfo.BitDepth} size={Scanline.Length}";
+        public override string ToString () => $"row={ImageRow} cols={ImgInfo.Cols} bpc={ImgInfo.BitDepth} size={Scanline.Length}";
 
         internal static int GetMaskForPackedFormats ( int bitDepth )
         {

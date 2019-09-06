@@ -89,12 +89,12 @@ namespace Pngcs.Unity
         (
             Texture2D texture ,
             string filePath ,
-            System.Func<Texture2D,ImageLine,ImageInfo,int,Task> fillLine
+            System.Func<Texture2D,int[],ImageInfo,int,Task> fillLine
         )
         {
             try
             {
-                var info = new ImageInfo(
+                var imageInfo = new ImageInfo(
                     texture.width ,
                     texture.height ,
                     GetBitDepth( texture.format ) ,
@@ -104,24 +104,27 @@ namespace Pngcs.Unity
                 );
                     
                 // open image for writing:
-                PngWriter writer = FileHelper.CreatePngWriter( filePath , info , true );
+                PngWriter writer = FileHelper.CreatePngWriter( filePath , imageInfo , true );
                 
                 // add some optional metadata (chunks)
                 var meta = writer.GetMetadata();
                 meta.SetTimeNow( 0 );// 0 seconds fron now = now
 
-                int numRows = info.Rows;
-                int numCols = info.Cols;
-                ImageLine line = new ImageLine( info );
+                int numRows = imageInfo.Rows;
+                int numCols = imageInfo.Cols;
+                int channels = imageInfo.Channels;
                 for( int row=0 ; row<numRows ; row++ )
                 {
                     //fill line on main or different thread:
-                    await fillLine( texture , line , info , row );
+                    int[] samples = new int[ numCols ];
+                    await fillLine( texture , samples , imageInfo , row ).ConfigureAwait(true);
                     
                     //write line on another thread:
-                    await Task.Run(
-                        ()=> writer.WriteRow( line , row )
-                    );
+                    ImageLine line = new ImageLine( imageInfo , ImageLine.ESampleType.INT , false , samples , null , row );
+                    await Task.Run( ()=> {
+                        writer.WriteRow( line , row );
+                        return Task.CompletedTask;
+                    } ).ConfigureAwait(true);
                 }
                 writer.End();
             }
@@ -167,7 +170,7 @@ namespace Pngcs.Unity
             string filePath
         )
         {
-            var info = new ImageInfo(
+            var imageInfo = new ImageInfo(
                 width ,
                 height ,
                 bitDepth ,
@@ -177,17 +180,19 @@ namespace Pngcs.Unity
             );
                 
             // open image for writing:
-            PngWriter writer = FileHelper.CreatePngWriter( filePath , info , true );
+            PngWriter writer = FileHelper.CreatePngWriter( filePath , imageInfo , true );
             
             // add some optional metadata (chunks)
             var meta = writer.GetMetadata();
             meta.SetTimeNow( 0 );// 0 seconds fron now = now
 
-            int numRows = info.Rows;
-            int numCols = info.Cols;
-            ImageLine imageline = new ImageLine( info );
+            int numRows = imageInfo.Rows;
+            int numCols = imageInfo.Cols;
+            int channels = imageInfo.Channels;
             for( int row=0 ; row<numRows ; row++ )
             {
+                int[] ints = new int[ numCols ];
+
                 //fill line:
                 if( greyscale==false )
                 {
@@ -195,16 +200,16 @@ namespace Pngcs.Unity
                     {
                         for( int col=0 ; col<numCols ; col++ )
                         {
-                            RGBA rgba = ToRGBA( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] , bitDepth );
-                            ImageLineHelper.SetPixel( imageline , col , rgba.R , rgba.G , rgba.B , rgba.A );
+                            RGBA<int> rgba = ToRGBA( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] , bitDepth );
+                            ImageLineHelper.SetPixel( ints , rgba , col , channels );
                         }
                     }
                     else
                     {
                         for( int col=0 ; col<numCols ; col++ )
                         {
-                            RGB rgb = ToRGB( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] , bitDepth );
-                            ImageLineHelper.SetPixel( imageline , col , rgb.r , rgb.g , rgb.b );
+                            RGB<int> rgb = ToRGB( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] , bitDepth );
+                            ImageLineHelper.SetPixel( ints , rgb , col , channels );
                         }
                     }
                 }
@@ -214,21 +219,22 @@ namespace Pngcs.Unity
                     {
                         for( int col=0 ; col<numCols ; col++ )
                         {
-                            int r = ToInt( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ].r , bitDepth );
-                            ImageLineHelper.SetPixel( imageline , col , r );
+                            int R = ToInt( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ].r , bitDepth );
+                            ImageLineHelper.SetPixel( ints , R , col , channels );
                         }
                     }
                     else
                     {
                         for( int col=0 ; col<numCols ; col++ )
                         {
-                            int a = ToInt( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ].a , bitDepth );
-                            ImageLineHelper.SetPixel( imageline , col , a );
+                            int A = ToInt( pixels[ IndexPngToTexture( row , col , numRows , numCols ) ].a , bitDepth );
+                            ImageLineHelper.SetPixel( ints , A , col , channels );
                         }
                     }
                 }
                 
                 //write line:
+                ImageLine imageline = new ImageLine( imageInfo , ImageLine.ESampleType.INT , false , ints , null , row );
                 writer.WriteRow( imageline , row );
             }
             writer.End();
@@ -237,16 +243,17 @@ namespace Pngcs.Unity
         static async Task FillLine
         (
             Texture2D texture ,
-            ImageLine line ,
-            ImageInfo info ,
+            int[] samples ,
+            ImageInfo imageInfo ,
             int row
         )
         {
-            int numCols = info.Cols;
-            int numRows = info.Rows;
-            int bitDepth = info.BitDepth;
-            bool alpha = info.Alpha;
-            bool greyscale = info.Greyscale;
+            int numCols = imageInfo.Cols;
+            int numRows = imageInfo.Rows;
+            int bitDepth = imageInfo.BitDepth;
+            bool alpha = imageInfo.Alpha;
+            bool greyscale = imageInfo.Greyscale;
+            int channels = imageInfo.Channels;
 
             //fill line:
             Color[] pixels = texture.GetPixels( 0 , row , numCols , 1 );
@@ -256,16 +263,16 @@ namespace Pngcs.Unity
                 {
                     for( int col=0 ; col<numCols ; col++ )
                     {
-                        RGBA rgba = ToRGBA( pixels[col] , bitDepth );
-                        ImageLineHelper.SetPixel( line , col , rgba.R , rgba.G , rgba.B , rgba.A );
+                        RGBA<int> rgba = ToRGBA( pixels[col] , bitDepth );
+                        ImageLineHelper.SetPixel( samples , rgba , col , channels );
                     }
                 }
                 else
                 {
                     for( int col=0 ; col<numCols ; col++ )
                     {
-                        RGB rgb = ToRGB( pixels[col] , bitDepth );
-                        ImageLineHelper.SetPixel( line , col , rgb.r , rgb.g , rgb.b );
+                        RGB<int> rgb = ToRGB( pixels[col] , bitDepth );
+                        ImageLineHelper.SetPixel( samples , rgb , col , channels );
                     }
                 }
             }
@@ -275,16 +282,16 @@ namespace Pngcs.Unity
                 {
                     for( int col=0 ; col<numCols ; col++ )
                     {
-                        int r = ToInt( pixels[col].r , bitDepth );
-                        ImageLineHelper.SetPixel( line , col , r );
+                        int R = ToInt( pixels[col].r , bitDepth );
+                        ImageLineHelper.SetPixel( samples , R , col , channels );
                     }
                 }
                 else
                 {
                     for( int col=0 ; col<numCols ; col++ )
                     {
-                        int a = ToInt( pixels[col].a , bitDepth );
-                        ImageLineHelper.SetPixel( line , col , a );
+                        int A = ToInt( pixels[col].a , bitDepth );
+                        ImageLineHelper.SetPixel( samples , A , col , channels );
                     }
                 }
             }
@@ -303,7 +310,7 @@ namespace Pngcs.Unity
         )
         {
             try {
-                var info = new ImageInfo(
+                var imageInfo = new ImageInfo(
                     width ,
                     height ,
                     16 ,
@@ -314,36 +321,38 @@ namespace Pngcs.Unity
                 await Task.Run( ()=> {
                     
                     // open image for writing:
-                    PngWriter writer = FileHelper.CreatePngWriter( filePath , info , true );
+                    PngWriter writer = FileHelper.CreatePngWriter( filePath , imageInfo , true );
                     
                     // add some optional metadata (chunks)
                     var meta = writer.GetMetadata();
                     meta.SetTimeNow( 0 );// 0 seconds fron now = now
 
-                    int numRows = info.Rows;
-                    int numCols = info.Cols;
-                    ImageLine imageline = new ImageLine( info );
+                    int numRows = imageInfo.Rows;
+                    int numCols = imageInfo.Cols;
+                    int channels = imageInfo.Channels;
                     for( int row=0 ; row<numRows ; row++ )
                     {
                         //fill line:
+                        int[] ints = new int[ numCols ];
                         if( alpha==false )
                         {
                             for( int col=0 ; col<numCols ; col++ )
                             {
-                                ushort r = pixels[ IndexPngToTexture( row , col , numRows , numCols ) ];
-                                ImageLineHelper.SetPixel( imageline , col , r );
+                                ushort R = pixels[ IndexPngToTexture( row , col , numRows , numCols ) ];
+                                ImageLineHelper.SetPixel( ints , R , col , channels );
                             }
                         }
                         else
                         {
                             for( int col=0 ; col<numCols ; col++ )
                             {
-                                ushort a = pixels[ IndexPngToTexture( row , col , numRows , numCols ) ];
-                                ImageLineHelper.SetPixel( imageline , col , a );
+                                ushort A = pixels[ IndexPngToTexture( row , col , numRows , numCols ) ];
+                                ImageLineHelper.SetPixel( ints , A , col , channels );
                             }
                         }
                         
                         //write line:
+                        ImageLine imageline = new ImageLine( imageInfo , ImageLine.ESampleType.INT , false , ints , null , row );
                         writer.WriteRow( imageline , row );
                     }
                     writer.End();
@@ -364,8 +373,9 @@ namespace Pngcs.Unity
             string filePath
         )
         {
-            try {
-                var info = new ImageInfo(
+            try
+            {
+                var imageInfo = new ImageInfo(
                     width ,
                     height ,
                     8 ,
@@ -376,36 +386,38 @@ namespace Pngcs.Unity
                 await Task.Run( ()=> {
                     
                     // open image for writing:
-                    PngWriter writer = FileHelper.CreatePngWriter( filePath , info , true );
+                    PngWriter writer = FileHelper.CreatePngWriter( filePath , imageInfo , true );
                     
                     // add some optional metadata (chunks)
                     var meta = writer.GetMetadata();
                     meta.SetTimeNow( 0 );// 0 seconds fron now = now
 
-                    int numRows = info.Rows;
-                    int numCols = info.Cols;
-                    ImageLine imageline = new ImageLine( info );
+                    int numRows = imageInfo.Rows;
+                    int numCols = imageInfo.Cols;
+                    int channels = imageInfo.Channels;
                     for( int row=0 ; row<numRows ; row++ )
                     {
+                        byte[] bytes = new byte[ numCols ];
                         //fill line:
                         if( alpha==false )
                         {
                             for( int col=0 ; col<numCols ; col++ )
                             {
-                                byte r = pixels[ IndexPngToTexture( row , col , numRows , numCols ) ];
-                                ImageLineHelper.SetPixel( imageline , col , r );
+                                byte R = pixels[ IndexPngToTexture( row , col , numRows , numCols ) ];
+                                ImageLineHelper.SetPixel( bytes , R , col , channels );
                             }
                         }
                         else
                         {
                             for( int col=0 ; col<numCols ; col++ )
                             {
-                                byte a = pixels[ IndexPngToTexture( row , col , numRows , numCols ) ];
-                                ImageLineHelper.SetPixel( imageline , col , a );
+                                byte A = pixels[ IndexPngToTexture( row , col , numRows , numCols ) ];
+                                ImageLineHelper.SetPixel( bytes , A , col , channels );
                             }
                         }
                         
                         //write line:
+                        ImageLine imageline = new ImageLine( imageInfo , ImageLine.ESampleType.BYTE , false , null , bytes , row );
                         writer.WriteRow( imageline , row );
                     }
                     writer.End();
@@ -547,7 +559,7 @@ namespace Pngcs.Unity
             }
             finally
             {
-                if( reader!=null ) reader.End();
+                if( reader!=null ) reader.Dispose();
             }
             return results;
         }
@@ -558,93 +570,28 @@ namespace Pngcs.Unity
             var info = reader.ImgInfo;
             int channels = info.Channels;
             int bitDepth = info.BitDepth;
+            int numCols = results.width;
+            int numRows = results.height;
+            Color[] pixels = results.pixels;
             float max = GetBitDepthMaxValue( bitDepth );
             if( !info.Indexed )
             {
                 if( !info.Packed )
                 {
-                    for( int row=0 ; row<results.height ; row++ )
+                    for( int row=0 ; row<numRows ; row++ )
                     {
-                        ImageLine imageLine = reader.ReadRowInt( row );
-                        var scanline = imageLine.Scanline;
-                        for( int col=0 ; col<results.width ; col++ )
-                        {
-                            int i = col*channels;
-                            RGBA rgba;
-                            if( channels==4 )
-                            {
-                                rgba = new RGBA{
-                                    R = scanline[i] ,
-                                    G = scanline[i+1] ,
-                                    B = scanline[i+2] ,
-                                    A = scanline[i+3]
-                                };
-                            }
-                            else if( channels==3 )
-                            {
-                                rgba = new RGBA{
-                                    R = scanline[i] ,
-                                    G = scanline[i+1] ,
-                                    B = scanline[i+2] ,
-                                    A = int.MaxValue
-                                };
-                            }
-                            else if( channels==2 )
-                            {
-                                int val = scanline[i+1];
-                                int a = scanline[i];
-                                rgba = new RGBA{
-                                    R = val , G = val , B = val ,
-                                    A = a
-                                };
-                            }
-                            else if( channels==1 )
-                            {
-                                int val = scanline[i];
-                                rgba = new RGBA{ R = val , G = val , B = val , A = val };
-                            }
-                            else { throw new System.Exception( $"{channels} channels not implemented" ); }
-
-                            Color color = new Color{
-                                r = (float)rgba.R / max ,
-                                g = (float)rgba.G / max ,
-                                b = (float)rgba.B / max ,
-                                a = (float)rgba.A / max
-                            };
-                            results.pixels[ IndexPngToTexture( row , col , results.height , results.width ) ] = color;
-                        }
+                        ImageLine imageLine = reader.ReadRowByte( row );
+                            ProcessNByteRow( imageLine , pixels );
                     }
                 }
                 else
                 {
                     if( bitDepth==4 )
                     {
-                        for( int row=0 ; row<results.height ; row++ )
+                        for( int row=0 ; row<numRows ; row++ )
                         {
                             ImageLine imageLine = reader.ReadRowByte( row );
-                            var scanline = imageLine.ScanlineB;
-                            for( int col=0 ; col<results.width/2 ; col++ )
-                            {
-                                byte b = scanline[ col ];
-                                int hiNybble = (b & 0xF0) >> 4; //Left hand nybble
-                                int loNyblle = (b & 0x0F);      //Right hand nybble
-                                float val1 = (float)hiNybble / max;
-                                float val2 = (float)loNyblle / max;
-                                Color color_1 = new Color{
-                                    r = val1 ,
-                                    g = val1 ,
-                                    b = val1 ,
-                                    a = val1
-                                };
-                                Color color_2 = new Color{
-                                    r = val2 ,
-                                    g = val2 ,
-                                    b = val2 ,
-                                    a = val2
-                                };
-                                results.pixels[ IndexPngToTexture( row , col*2+0 , results.height , results.width ) ] = color_1;
-                                results.pixels[ IndexPngToTexture( row , col*2+1 , results.height , results.width ) ] = color_2;
-                            }
+                                Process4BitRow( imageLine , pixels );
                         }
                     }
                     else if( bitDepth==2 )
@@ -653,21 +600,10 @@ namespace Pngcs.Unity
                     }
                     else if( bitDepth==1 )
                     {
-                        int BIT ( int index , byte b ) => (b&(1<<index))!=0 ? 1<<index : 0;
-                        for( int row=0 ; row<results.height ; row++ )
+                        for( int row=0 ; row<numRows ; row++ )
                         {
                             ImageLine imageLine = reader.ReadRowByte( row );
-                            var scanline = imageLine.ScanlineB;
-                            
-                            for( int col=0 ; col<results.width/8 ; col++ )
-                            {
-                                for( int bit=0 ; bit<8 ; bit++ )
-                                {
-                                    float val = BIT( bit , scanline[ col ] );
-                                    Color color = new Color{ r = val , g = val , b = val , a = val };
-                                    results.pixels[ IndexPngToTexture( row , col*8+bit , results.height , results.width ) ] = color;
-                                }
-                            }
+                                Process1BitRow( imageLine , pixels );
                         }
                     }
                     else throw new System.Exception( $"bit depth {bitDepth} not implemented" );
@@ -692,13 +628,135 @@ namespace Pngcs.Unity
             catch ( System.Exception ex ) { Debug.LogException( ex ); }
             finally
             {
-                if( reader!=null ) reader.End();
+                if( reader!=null ) reader.Dispose();
             }
             return imageInfo;
         }
 
+        static void Process1BitRow ( ImageLine imageLine , Color[] pixels )
+        {
+            int row = imageLine.ImageRow;
+            ImageInfo imgInfo = imageLine.ImgInfo;
+            int numRows = imgInfo.Rows;
+            int numCols = imgInfo.Cols;
+            var scanline = imageLine.ScanlineB;
+            for( int col=0 ; col<numCols/8 ; col++ )
+            {
+                byte B = scanline[ col ];
+                for( int bit=0 ; bit<8 ; bit++ )
+                {
+                    float val = BIT( bit , B );
+                    Color color = new Color{ r = val , g = val , b = val , a = val };
+                    pixels[ IndexPngToTexture( row , col*8+bit , numRows , numCols ) ] = color;
+                }
+            }
+            int BIT ( int index , byte b ) => (b&(1<<index))!=0 ? 1<<index : 0;
+        }
+
+        static void Process4BitRow ( ImageLine imageLine , Color[] pixels )
+        {
+            int row = imageLine.ImageRow;
+            ImageInfo imgInfo = imageLine.ImgInfo;
+            int numRows = imgInfo.Rows;
+            int numCols = imgInfo.Cols;
+            float max = GetBitDepthMaxValue( 4 );
+            var scanline = imageLine.ScanlineB;
+            for( int col=0 ; col<numCols/2 ; col++ )
+            {
+                byte B = scanline[ col ];
+                int hiNybble = (B & 0xF0) >> 4; //Left hand nybble
+                int loNyblle = (B & 0x0F);      //Right hand nybble
+                float val1 = (float)hiNybble / max;
+                float val2 = (float)loNyblle / max;
+                Color color_1 = new Color{
+                    r = val1 ,
+                    g = val1 ,
+                    b = val1 ,
+                    a = val1
+                };
+                Color color_2 = new Color{
+                    r = val2 ,
+                    g = val2 ,
+                    b = val2 ,
+                    a = val2
+                };
+                pixels[ IndexPngToTexture( row , col*2+0 , numRows , numCols ) ] = color_1;
+                pixels[ IndexPngToTexture( row , col*2+1 , numRows , numCols ) ] = color_2;
+            }
+        }
+
+        static void ProcessNByteRow ( ImageLine imageLine , Color[] pixels )
+        {
+            int row = imageLine.ImageRow;
+            ImageInfo imgInfo = imageLine.ImgInfo;
+            int numRows = imgInfo.Rows;
+            int numCols = imgInfo.Cols;
+            int bitDepth = imgInfo.BitDepth;
+            int channels = imgInfo.Channels;
+            float max = GetBitDepthMaxValue( bitDepth );
+            var scanline = imageLine.Scanline;
+            for( int col=0 ; col<numCols ; col++ )
+            {
+                int i = col*channels;
+                RGBA<int> rgba;
+                if( channels==4 )
+                {
+                    rgba = new RGBA<int>{
+                        R = scanline[i] ,
+                        G = scanline[i+1] ,
+                        B = scanline[i+2] ,
+                        A = scanline[i+3]
+                    };
+                }
+                else if( channels==3 )
+                {
+                    rgba = new RGBA<int>{
+                        R = scanline[i] ,
+                        G = scanline[i+1] ,
+                        B = scanline[i+2] ,
+                        A = int.MaxValue
+                    };
+                }
+                else if( channels==2 )
+                {
+                    int val = scanline[i+1];
+                    int a = scanline[i];
+                    rgba = new RGBA<int>{
+                        R = val , G = val , B = val ,
+                        A = a
+                    };
+                }
+                else if( channels==1 )
+                {
+                    int val = scanline[i];
+                    rgba = new RGBA<int>{ R = val , G = val , B = val , A = val };
+                }
+                else
+                {
+                    Debug.LogError( $"{channels} channels not implemented" );
+                    return;
+                }
+
+                Color color = new Color{
+                    r = (float)rgba.R / max ,
+                    g = (float)rgba.G / max ,
+                    b = (float)rgba.B / max ,
+                    a = (float)rgba.A / max
+                };
+                pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] = color;
+            }
+        }
+
         /// <summary> Texture2D's rows start from the bottom while PNG from the top. Hence inverted y/row. </summary>
-        public static int IndexPngToTexture ( int row , int col , int numRows , int numCols ) => numCols * ( numRows - 1 - row ) + col;
+        public static int IndexPngToTexture ( int row , int col , int numRows , int numCols )
+        {
+            #if DEBUG
+            if( row>=numRows ) throw new System.ArgumentOutOfRangeException( $"({row}) row>=numRows ({numRows})" );
+            if( col>=numCols ) throw new System.ArgumentOutOfRangeException( $"({col}) col>=numCols ({numCols})" );
+            #endif
+
+            return numCols * ( numRows - 1 - row ) + col;
+        }
 
         public static int Index2dto1d ( int x , int y , int width ) => y * width + x;
         
@@ -779,20 +837,20 @@ namespace Pngcs.Unity
             return (int)( color * max );
         }
 
-        public static RGB ToRGB ( Color color , int bitDepth )
+        public static RGB<int> ToRGB ( Color color , int bitDepth )
         {
             float max = GetBitDepthMaxValue( bitDepth );
-            return new RGB {
-                r = (int)( color.r * max ) ,
-                g = (int)( color.g * max ) ,
-                b = (int)( color.b * max )
+            return new RGB<int> {
+                R = (int)( color.r * max ) ,
+                G = (int)( color.g * max ) ,
+                B = (int)( color.b * max )
             };
         }
         
-        public static RGBA ToRGBA ( Color color , int bitDepth )
+        public static RGBA<int> ToRGBA ( Color color , int bitDepth )
         {
             float max = GetBitDepthMaxValue( bitDepth );
-            return new RGBA {
+            return new RGBA<int> {
                 R = (int)( color.r * max ) ,
                 G = (int)( color.g * max ) ,
                 B = (int)( color.b * max ) ,
@@ -813,10 +871,6 @@ namespace Pngcs.Unity
                 default: throw new System.Exception( $"bitDepth '{ bitDepth }' not implemented" );
             }
         }
-
-        public struct RGB { public int r, g, b; }
-
-        public struct RGBA { public int R, G, B, A; }
 
         public struct ReadColorsResult
         {
