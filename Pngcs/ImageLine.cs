@@ -12,11 +12,8 @@ namespace Pngcs
         /// <summary> ImageInfo (readonly inmutable) </summary>
         public ImageInfo ImgInfo { get; private set; }
 
-        /// <summary>
-        /// Samples of an image line
-        /// </summary>
+        /// <summary> Samples of an image line </summary>
         /// <remarks>
-        /// 
         /// The 'scanline' is an array of integers, corresponds to an image line (row)
         /// Except for 'packed' formats (gray/indexed with 1-2-4 bitdepth) each int is a
         /// "sample" (one for channel), (0-255 or 0-65535) in the respective PNG sequence
@@ -41,16 +38,11 @@ namespace Pngcs
         internal readonly int channels; // copied from imgInfo, more handy
         internal readonly int bitDepth; // copied from imgInfo, more handy
 
-        /// <summary>
-        /// Hown many elements has the scanline array
-        /// =imgInfo.samplePerRowPacked, if packed, imgInfo.samplePerRow elsewhere
-        /// </summary>
         public int ElementsPerRow { get; private set; }
+        /// <summary> Hown many elements has the scanline array =imgInfo.samplePerRowPacked, if packed, imgInfo.samplePerRow elsewhere </summary>
 
-        /// <summary>
-        /// Maximum sample value that this line admits: typically 255; less if bitdepth less than 8, 65535 if 16bits
-        /// </summary>
         public int maxSampleVal { get; private set; }
+        /// <summary> Maximum sample value that this line admits: typically 255; less if bitdepth less than 8, 65535 if 16bits </summary>
 
         public enum ESampleType
         {
@@ -80,7 +72,7 @@ namespace Pngcs
 
         /// <summary> Constructs an ImageLine </summary>
         /// <param name="imgInfo">Inmutable copy of PNG ImageInfo</param>
-        /// <param name="stype">Storage for samples:INT (default) or BYTE</param>
+        /// <param name="sampleType">Storage for samples:INT (default) or BYTE</param>
         /// <param name="unpackedMode">If true and bitdepth less than 8, samples are unpacked. This has no effect if biddepth 8 or 16</param>
         public ImageLine ( ImageInfo imgInfo , ESampleType stype , bool unpackedMode )
             : this( imgInfo , stype , unpackedMode , null , null )

@@ -4,9 +4,7 @@ using Pngcs.Chunks;
 
 namespace Pngcs
 {
-    /// <summary>
-    /// Reads a PNG image, line by line
-    /// </summary>
+    /// <summary> Reads a PNG image, line by line </summary>
     /// <remarks>
     /// The typical reading sequence is as follows:
     /// 
@@ -17,7 +15,7 @@ namespace Pngcs
     /// 3. (Optional) If you call GetMetadata() or or GetChunksLisk() before reading the pixels, the chunks before IDAT are automatically loaded and available
     /// 
     /// 4a. The rows are read, one by one, with the <tt>ReadRowXXX</tt> methods: (ReadRowInt() , ReadRowByte(), etc)
-    /// in order, from 0 to nrows-1 (you can skip or repeat rows, but not go backwards)
+    /// in order, from 0 to imageRows-1 (you can skip or repeat rows, but not go backwards)
     /// 
     /// 4b. Alternatively, you can read all rows, or a subset, in a single call: see ReadRowsInt(), ReadRowsByte()
 	/// In general this consumes more memory, but for interlaced images this is equally efficient, and more so if reading a small subset of rows.
@@ -122,15 +120,12 @@ namespace Pngcs
         // this only influences the 1-2-4 bitdepth format
         bool unpackedMode = false;
 
-        /// <summary>
-        /// number of chunk group (0-6) last read, or currently reading
-        /// </summary>
+        /// <summary> number of chunk group (0-6) last read, or currently reading </summary>
         /// <remarks>see ChunksList.CHUNK_GROUP_NNN</remarks>
         public int CurrentChunkGroup { get; private set; }
-        /// <summary>
-        /// last read row number
-        /// </summary>
         protected int rowNum = -1;
+        
+        /// <summary> Last read row number </summary>
         long offset = 0;  // offset in InputStream = bytes read
         int bytesChunksLoaded = 0; // bytes loaded from anciallary chunks
 
@@ -460,14 +455,11 @@ namespace Pngcs
             return pngChunk;
         }
 
-        /// <summary>
-        /// Logs/prints a warning.
-        /// </summary>
+        /// <summary> Logs/prints a warning. </summary>
         /// <remarks>
         /// The default behaviour is print to stderr, but it can be overriden.
         /// This happens rarely - most errors are fatal.
         /// </remarks>
-        /// <param name="warn"></param>
         internal void logWarn ( string warn ) => System.Console.Error.WriteLine( warn );
 
         /// <summary>
@@ -485,12 +477,8 @@ namespace Pngcs
             return chunksList;
         }
 
-        /// <summary>
-        /// Returns the ancillary chunks available
-        /// </summary>
-        /// <remarks>
-        /// see GetChunksList
-        /// </remarks>
+        /// <summary> Returns the ancillary chunks available </summary>
+        /// <remarks> See GetChunksList </remarks>
         /// <returns>PngMetadata</returns>
         public PngMetadata GetMetadata ()
         {
@@ -501,43 +489,44 @@ namespace Pngcs
             return metadata;
         }
 
-        /// <summary>
-        /// reads the row using ImageLine as buffer
-        /// </summary>
-        ///<param name="nrow">row number - just as a check</param>
+        /// <summary> Reads the row using ImageLine as buffer </summary>
+        ///<param name="imageRow">row number - just as a check</param>
         /// <returns>the ImageLine that also is available inside this object</returns>
-        public ImageLine ReadRow ( int nrow )
-        {
-            return imgLine==null || imgLine.SampleType!=ImageLine.ESampleType.BYTE ? ReadRowInt(nrow) : ReadRowByte(nrow);
-        }
+        public ImageLine ReadRow ( int imageRow ) => imgLine==null || imgLine.SampleType!=ImageLine.ESampleType.BYTE ? ReadRowInt(imageRow) : ReadRowByte(imageRow);
 
-        public ImageLine ReadRowInt ( int nrow )
+        public ImageLine ReadRowInt ( int imageRow )
         {
-            if( imgLine==null)
-                imgLine = new ImageLine(ImgInfo, ImageLine.ESampleType.INT, unpackedMode);
-            if( imgLine.Rown==nrow) // already read
-                return imgLine;
-            ReadRowInt(imgLine.Scanline, nrow);
+            imgLine = new ImageLine(
+                ImgInfo ,
+                ImageLine.ESampleType.INT ,
+                unpackedMode ,
+                null ,
+                null ,
+                imageRow
+            );
+            ReadRowInt( imgLine.Scanline , imageRow );
             imgLine.FilterUsed = (FilterType)rowbfilter[0];
-            imgLine.Rown = nrow;
             return imgLine;
         }
 
-        public ImageLine ReadRowByte ( int nrow )
+        public ImageLine ReadRowByte ( int imageRow )
         {
-            if( imgLine==null )
-                imgLine = new ImageLine( ImgInfo , ImageLine.ESampleType.BYTE , unpackedMode );
-            if( imgLine.Rown==nrow ) // already read
-                return imgLine;
-            ReadRowByte( imgLine.ScanlineB , nrow );
+            imgLine = new ImageLine(
+                ImgInfo ,
+                ImageLine.ESampleType.BYTE ,
+                unpackedMode ,
+                null ,
+                null ,
+                imageRow
+            );
+            ReadRowByte( imgLine.ScanlineB , imageRow );
             imgLine.FilterUsed = (FilterType)rowbfilter[0];
-            imgLine.Rown = nrow;
             return imgLine;
         }
 
-        public int[] ReadRow(int[] buffer, int nrow) => ReadRowInt( buffer , nrow );
+        public int[] ReadRow ( int[] buffer , int imageRow ) => ReadRowInt( buffer , imageRow );
 
-        public int[] ReadRowInt ( int[] buffer , int nrow )
+        public int[] ReadRowInt ( int[] buffer , int imageRow )
         {
             if( buffer==null )
             {
@@ -545,11 +534,11 @@ namespace Pngcs
             }
             if( interlaced==false )
             {
-                if( nrow<=rowNum ) { throw new IO.IOException( $"rows must be read in increasing order: { nrow }"); }
+                if( imageRow<=currentImageRow ) throw new IO.IOException($"rows must be read in increasing order: {imageRow}");
                 int bytesread = 0;
-                while( rowNum<nrow )
+                while( currentImageRow<imageRow )
                 {
-                    bytesread = ReadRowRaw( rowNum + 1 );// read rows, perhaps skipping if necessary
+                    bytesread = ReadRowRaw( currentImageRow + 1 );// read rows, perhaps skipping if necessary
                 }
                 decodeLastReadRowToInt( buffer , bytesread );
             }
@@ -560,7 +549,7 @@ namespace Pngcs
                     deinterlacer.setImageInt( ReadRowsInt().Scanlines );// read all image and store it in deinterlacer
                 }
                 System.Array.Copy(
-                    deinterlacer.getImageInt()[ nrow ] ,
+                    deinterlacer.getImageInt()[ imageRow ] ,
                     0 ,
                     buffer ,
                     0 ,
@@ -570,7 +559,7 @@ namespace Pngcs
             return buffer;
         }
 
-        public byte[] ReadRowByte ( byte[] buffer , int nrow )
+        public byte[] ReadRowByte ( byte[] buffer , int imageRow )
         {
             if( buffer==null )
             {
@@ -578,11 +567,11 @@ namespace Pngcs
             }
             if( interlaced==false )
             {
-                if( nrow<=rowNum) { throw new IO.IOException( $"rows must be read in increasing order: { nrow }" ); }
+                if( imageRow<=currentImageRow) throw new IO.IOException( $"rows must be read in increasing order: {imageRow}" );
                 int bytesread = 0;
-                while( rowNum<nrow )
+                while( currentImageRow<imageRow )
                 {
-                    bytesread = ReadRowRaw(rowNum + 1); // read rows, perhaps skipping if necessary
+                    bytesread = ReadRowRaw( currentImageRow+1 ); // read rows, perhaps skipping if necessary
                 }
                 decodeLastReadRowToByte( buffer , bytesread );
             }
@@ -593,7 +582,7 @@ namespace Pngcs
                     deinterlacer.setImageByte( ReadRowsByte().ScanlinesB );// read all image and store it in deinterlacer
                 }
                 System.Array.Copy(
-                    deinterlacer.getImageByte()[ nrow ] ,
+                    deinterlacer.getImageByte()[ imageRow ] ,
                     0 ,
                     buffer ,
                     0 ,
@@ -708,7 +697,8 @@ namespace Pngcs
                 }
             }
             else
-            { // and now, for something completely different (interlaced)
+            {
+                // and now, for something completely different (interlaced)
                 byte[] buf = new byte[ unpackedMode ? ImgInfo.SamplesPerRow : ImgInfo.SamplesPerRowPacked ];
                 for( int p=1 ; p<=7 ; p++ )
                 {
@@ -799,10 +789,8 @@ namespace Pngcs
         // basic info
         public override string ToString () => $"filename={ filename } { ImgInfo }";
 
-        /// <summary>
-        /// Normally this does nothing, but it can be used to force a premature closing
-        /// </summary>
         public void End ()
+        /// <summary> Normally this does nothing, but it can be used to force a premature closing </summary>
         {
             if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END )  Close();
         }

@@ -2,11 +2,9 @@
 {
     /// <summary>
     /// Wraps a set of rows from a image, read in a single operation, stored in a int[][] or byte[][] matrix
-    /// 
     /// They can be a subset of the total rows, but in this case they are equispaced.
-    /// 
-    /// See also ImageLine
     /// </summary>
+    /// <note> See also ImageLine </note>
     public class ImageLines
     {
 
@@ -51,9 +49,8 @@
         /// <summary>
         /// Translates from image row number to matrix row.
         /// If you are not sure if this image row in included, use better ImageRowToMatrixRowStrict
-        /// 
         /// </summary>
-        /// <param name="imrow">Row number in the original image (from 0) </param>
+        /// <param name="imageRow">Row number in the original image (from 0) </param>
         /// <returns>Row number in the wrapped matrix. Undefined result if invalid</returns>
         public int ImageRowToMatrixRow ( int imrow )
         {
@@ -61,10 +58,8 @@
             return r<0 ? 0 : ( r<Nrows ? r : Nrows-1 );
         }
 
-        /// <summary>
-        /// translates from image row number to matrix row
-        /// </summary>
-        /// <param name="imrow">Row number in the original image (from 0) </param>
+        /// <summary> Translates from image row number to matrix row </summary>
+        /// <param name="imageRow">Row number in the original image (from 0) </param>
         /// <returns>Row number in the wrapped matrix. Returns -1 if invalid</returns>
         public int ImageRowToMatrixRowStrict ( int imrow )
         {
@@ -74,15 +69,15 @@
         }
 
         /// <summary> Translates from matrix row number to real image row number </summary>
-        /// <param name="mrow">Row number inside the matrix</param>
         public int MatrixRowToImageRow ( int mrow ) => mrow*RowStep + RowOffset;
+        /// <param name="matrixRow"> Row number inside the matrix </param>
 
         /// <summary>
         /// Constructs and returns an ImageLine object backed by a matrix row.
         /// This is quite efficient, no deep copy.
         /// </summary>
-        /// <param name="mrow">Row number inside the matrix</param>
         public ImageLine GetImageLineAtMatrixRow ( int mrow )
+        /// <param name="matrixRow"> Row number inside the matrix </param>
         {
             if( mrow<0 || mrow>Nrows ) throw new System.Exception($"Bad row {mrow}. Should be positive and less than {Nrows}");
             ImageLine imline =
@@ -92,5 +87,6 @@
             imline.Rown = MatrixRowToImageRow( mrow );
             return imline;
         }
+
     }
 }
