@@ -9,10 +9,9 @@ namespace Pngcs
     public class ImageLine
     {
         
-        /// <summary>
-        /// ImageInfo (readonly inmutable)
-        /// </summary>
+        /// <summary> ImageInfo (readonly inmutable) </summary>
         public ImageInfo ImgInfo { get; private set; }
+
         /// <summary>
         /// Samples of an image line
         /// </summary>
@@ -32,24 +31,22 @@ namespace Pngcs
         /// </remarks>
         public int[] Scanline { get; private set; }
 
-        /// <summary>
-        /// Same as Scanline, but with one byte per sample. Only one of Scanline and ScanlineB is valid - this depends
-        /// on SampleType}
+        /// <summary> Same as Scanline, but with one byte per sample. Only one of Scanline and ScanlineB is valid - this depends on SampleType}
         /// </summary>
         public byte[] ScanlineB { get; private set; }
 
-        /// <summary>
-        /// tracks the current row number (from 0 to rows-1)
-        /// </summary>
+        /// <summary> tracks the current row number (from 0 to rows-1) </summary>
         public int Rown { get; set; }
 
         internal readonly int channels; // copied from imgInfo, more handy
         internal readonly int bitDepth; // copied from imgInfo, more handy
+
         /// <summary>
         /// Hown many elements has the scanline array
         /// =imgInfo.samplePerRowPacked, if packed, imgInfo.samplePerRow elsewhere
         /// </summary>
         public int ElementsPerRow { get; private set; }
+
         /// <summary>
         /// Maximum sample value that this line admits: typically 255; less if bitdepth less than 8, 65535 if 16bits
         /// </summary>
@@ -60,9 +57,8 @@ namespace Pngcs
             INT, // 4 bytes per sample
             BYTE // 1 byte per sample
         }
-        /// <summary>
-        /// Determines if samples are stored in integers or in bytes
-        /// </summary>
+
+        /// <summary> Determines if samples are stored in integers or in bytes </summary>
         public ESampleType SampleType { get; private set; }
 
         /// <summary>
@@ -71,9 +67,7 @@ namespace Pngcs
         /// </summary>
         public bool SamplesUnpacked { get; private set; }
 
-        /// <summary>
-        /// informational only ; filled by the reader
-        /// </summary>
+        /// <summary> informational only ; filled by the reader </summary>
         public FilterType FilterUsed { get; set; }
 
         public ImageLine ( ImageInfo imgInfo )
@@ -84,9 +78,7 @@ namespace Pngcs
             : this( imgInfo , stype , false )
         {}
 
-        /// <summary>
-        /// Constructs an ImageLine
-        /// </summary>
+        /// <summary> Constructs an ImageLine </summary>
         /// <param name="imgInfo">Inmutable copy of PNG ImageInfo</param>
         /// <param name="stype">Storage for samples:INT (default) or BYTE</param>
         /// <param name="unpackedMode">If true and bitdepth less than 8, samples are unpacked. This has no effect if biddepth 8 or 16</param>
@@ -117,7 +109,7 @@ namespace Pngcs
             }
             else
             {
-                throw new System.Exception( "bad ImageLine initialization" );
+                throw new System.Exception("bad ImageLine initialization");
             }
             this.Rown = -1;
         }
@@ -249,22 +241,16 @@ namespace Pngcs
             dst[0] |= v0;
         }
 
-        /// <summary>
-        /// Makes a deep copy
-        /// </summary>
-        /// <remarks>You should rarely use this</remarks>
-        /// <param name="b"></param>
+        /// <summary> Makes a deep copy </summary>
+        /// <remarks> You should rarely use this </remarks>
         internal void SetScanLine ( int[] b )
         {
             // makes copy
             System.Array.Copy( b , 0 , Scanline , 0 , Scanline.Length );
         }
 
-        /// <summary>
-        /// Makes a deep copy
-        /// </summary>
-        /// <remarks>You should rarely use this</remarks>
-        /// <param name="b"></param>
+        /// <summary> Makes a deep copy </summary>
+        /// <remarks> You should rarely use this </remarks>
         internal int[] GetScanLineCopy ( int[] b )
         {
             if( b==null || b.Length<Scanline.Length )
@@ -300,7 +286,7 @@ namespace Pngcs
         public bool IsByte () => SampleType==ESampleType.BYTE;
 
 
-        public override string ToString () => $"row={ Rown } cols={ ImgInfo.Cols } bpc={ ImgInfo.BitDepth } size={ Scanline.Length }";
+        public override string ToString () => $"row={Rown} cols={ImgInfo.Cols} bpc={ImgInfo.BitDepth} size={Scanline.Length}";
 
         internal static int GetMaskForPackedFormats ( int bitDepth )
         {

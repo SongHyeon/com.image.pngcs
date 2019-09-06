@@ -73,10 +73,8 @@
             return mrow<Nrows ? mrow : -1;
         }
 
-        /// <summary>
-        /// Translates from matrix row number to real image row number
-        /// </summary>
-        /// <param name="mrow"></param>
+        /// <summary> Translates from matrix row number to real image row number </summary>
+        /// <param name="mrow">Row number inside the matrix</param>
         public int MatrixRowToImageRow ( int mrow ) => mrow*RowStep + RowOffset;
 
         /// <summary>

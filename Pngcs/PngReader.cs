@@ -525,11 +525,11 @@ namespace Pngcs
 
         public ImageLine ReadRowByte ( int nrow )
         {
-            if( imgLine==null)
-                imgLine = new ImageLine(ImgInfo, ImageLine.ESampleType.BYTE, unpackedMode);
-            if( imgLine.Rown==nrow) // already read
+            if( imgLine==null )
+                imgLine = new ImageLine( ImgInfo , ImageLine.ESampleType.BYTE , unpackedMode );
+            if( imgLine.Rown==nrow ) // already read
                 return imgLine;
-            ReadRowByte(imgLine.ScanlineB, nrow);
+            ReadRowByte( imgLine.ScanlineB , nrow );
             imgLine.FilterUsed = (FilterType)rowbfilter[0];
             imgLine.Rown = nrow;
             return imgLine;

@@ -101,7 +101,7 @@ namespace Pngcs
                 while( read<len )
                 {
                     int n = mask0.Read( b , offset+read , len-read );
-                    if( n<1 ) throw new System.Exception($"error reading, {n} !={len}");
+                    if( n<1 ) throw new System.Exception($"error reading, {n} != {len}");
                     read += n;
                 }
             }
