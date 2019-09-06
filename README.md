@@ -48,3 +48,4 @@ REQUIREMENTS:
 #
 
 ![Pngcs test window](https://i.imgur.com/K2uenLC.jpg)
+(Test window available under Test>Pngcs Load)
