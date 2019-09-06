@@ -118,9 +118,9 @@ namespace Pngcs
             }
         }
 
-        public static void SetPixel ( ImageLine line , int col , int r , int g , int b , int a )
+        public static void SetPixel ( ImageLine line , int column , int r , int g , int b , int a )
         {
-            int offset = col * line.channels;
+            int offset = column * line.channels;
             if( line.IsInt() )
             {
                 line.Scanline[ offset++ ] = r;
@@ -143,33 +143,67 @@ namespace Pngcs
             }
         }
 
-        public static void SetPixel ( ImageLine line , int col , int value )
+        public static void SetPixel ( int[] data , int value , int column , int channels ) => data[ column*channels ] = value;
+        public static void SetPixel ( byte[] data , byte value , int column , int channels ) => data[ column*channels ] = value;
+
+        public static void SetPixel ( int[] data , RGB<int> rgb , int column , int channels )
+        {
+            int offset = column * channels;
+            data[ offset++]  = rgb.R;
+            data[ offset++ ] = rgb.G;
+            data[ offset ] = rgb.B;
+        }
+        public static void SetPixel ( int[] data , RGBA<int> rgba , int column , int channels )
+        {
+            int offset = column * channels;
+            data[ offset++]  = rgba.R;
+            data[ offset++ ] = rgba.G;
+            data[ offset ] = rgba.B;
+            data[ offset + 1 ] = rgba.A;
+        }
+        public static void SetPixel ( byte[] data , RGB<byte> rgb , int column , int channels )
+        {
+            int offset = column * channels;
+            data[ offset++]  = rgb.R;
+            data[ offset++ ] = rgb.G;
+            data[ offset ] = rgb.B;
+        }
+        public static void SetPixel ( byte[] data , RGBA<byte> rgba , int column , int channels )
+        {
+            int offset = column * channels;
+            data[ offset++]  = rgba.R;
+            data[ offset++ ] = rgba.G;
+            data[ offset ] = rgba.B;
+            data[ offset + 1 ] = rgba.A;
+        }
+
+        public static void SetPixel ( ImageLine line , int column , int value )
         {
             if( line.channels!=1 ) throw new System.Exception( "this method is for 1 channel images only" );
             if( line.IsInt() )
             {
-                line.Scanline[ col ] = value;
+                line.Scanline[ column ] = value;
             }
             else
             {
-                line.ScanlineB[ col ] = (byte)value;
+                line.ScanlineB[ column ] = (byte)value;
             }
         }
 
         public static void SetPixel ( ImageLine line , int col , int r , int g , int b )
         {
-            SetPixel( line , col , r , g , b , line.maxSampleVal );
+            SetPixel( line , col , r , g , b , line.MaxSampleVal );
         }
 
         public static double ReadDouble ( ImageLine line , int pos )
         {
             if( line.IsInt() )
             {
-                return line.Scanline[pos] / (line.maxSampleVal + 0.9);
+                return line.Scanline[pos] / (line.MaxSampleVal + 0.9);
             }
             else
             {
-                return (line.ScanlineB[pos]) / (line.maxSampleVal + 0.9);
+                return (line.ScanlineB[pos]) / (line.MaxSampleVal + 0.9);
             }
         }
 
@@ -177,11 +211,11 @@ namespace Pngcs
         {
             if( line.IsInt() )
             {
-                line.Scanline[ pos ] = (int)(d * (line.maxSampleVal + 0.99));
+                line.Scanline[ pos ] = (int)(d * (line.MaxSampleVal + 0.99));
             }
             else
             {
-                line.ScanlineB[ pos ] = (byte)(d * (line.maxSampleVal + 0.99));
+                line.ScanlineB[ pos ] = (byte)(d * (line.MaxSampleVal + 0.99));
             }
         }
 
