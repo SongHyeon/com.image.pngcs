@@ -46,3 +46,5 @@ REQUIREMENTS:
 - Unity 2017.1
 - Scripting runtime version: C# 4.x
 #
+
+![Pngcs test window](https://i.imgur.com/K2uenLC.jpg)
