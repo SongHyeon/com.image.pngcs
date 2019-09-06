@@ -33,7 +33,7 @@ namespace Pngcs.Unity
                     alpha:      alpha ,
                     greyscale:  greyscale ,
                     filePath:   filePath
-                );
+                ).ConfigureAwait(true);
             }
             catch( System.Exception ex ) { Debug.LogException(ex); await Task.CompletedTask; }//kills debugger execution loop on exception
             finally { await Task.CompletedTask; }
@@ -51,7 +51,7 @@ namespace Pngcs.Unity
         {
             try
             {
-                await Task.Run( ()=>
+                await Task.Run( ()=> {
                     Write(
                         pixels:     pixels ,
                         width:      width ,
@@ -60,8 +60,9 @@ namespace Pngcs.Unity
                         alpha:      alpha ,
                         greyscale:  greyscale ,
                         filePath:   filePath
-                    )
-                );
+                    );
+                    return Task.CompletedTask;
+                } ).ConfigureAwait(true);
             }
             catch( System.Exception ex ) { Debug.LogException(ex); await Task.CompletedTask; }//kills debugger execution loop on exception
             finally { await Task.CompletedTask; }
@@ -77,7 +78,7 @@ namespace Pngcs.Unity
             string filePath
         )
         {
-            await WriteLargeAsync( texture , filePath , FillLine );
+            await WriteLargeAsync( texture , filePath , FillLine ).ConfigureAwait(true);
         }
 
         /// <summary>
@@ -424,7 +425,7 @@ namespace Pngcs.Unity
             Texture2D result = null;
             try
             {
-                var readout = await ReadColorsAsync( filePath );
+                var readout = await ReadColorsAsync( filePath ).ConfigureAwait(true);
                 result = new Texture2D( readout.width , readout.height , readout.textureFormatInfered , false , true );
                 result.SetPixels( readout.pixels );
                 result.Apply();
