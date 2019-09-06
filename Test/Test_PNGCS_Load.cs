@@ -72,6 +72,7 @@ namespace PNGCS.Test
                         //set style:
                         IMG.style.width = 300;
                         IMG.style.height = 300;
+                        IMG.scaleMode = ScaleMode.ScaleToFit;
 
                         //label it:
                         var imageInfo = PNG.ReadImageInfo( path );
@@ -95,7 +96,7 @@ namespace PNGCS.Test
         {
             var window = GetWindow<Test_PNGCS_Load>();
             window.titleContent = new GUIContent(window.GetType().Name);
-            window.minSize = new Vector2{ x=600 , y=600 };
+            window.minSize = new Vector2{ x=300 , y=300 };
         }
 
         public void Dispose ()
