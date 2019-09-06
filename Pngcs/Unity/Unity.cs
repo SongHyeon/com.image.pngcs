@@ -33,7 +33,7 @@ namespace Pngcs.Unity
                     alpha:      alpha ,
                     greyscale:  greyscale ,
                     filePath:   filePath
-                ).ConfigureAwait(true);
+                );
             }
             catch( System.Exception ex ) { Debug.LogException(ex); await Task.CompletedTask; }//kills debugger execution loop on exception
             finally { await Task.CompletedTask; }
@@ -62,7 +62,7 @@ namespace Pngcs.Unity
                         filePath:   filePath
                     );
                     return Task.CompletedTask;
-                } ).ConfigureAwait(true);
+                } );
             }
             catch( System.Exception ex ) { Debug.LogException(ex); await Task.CompletedTask; }//kills debugger execution loop on exception
             finally { await Task.CompletedTask; }
@@ -78,7 +78,7 @@ namespace Pngcs.Unity
             string filePath
         )
         {
-            await WriteLargeAsync( texture , filePath , FillLine ).ConfigureAwait(true);
+            await WriteLargeAsync( texture , filePath , FillLine );
         }
 
         /// <summary>
@@ -117,14 +117,14 @@ namespace Pngcs.Unity
                 {
                     //fill line on main or different thread:
                     int[] samples = new int[ numCols ];
-                    await fillLine( texture , samples , imageInfo , row ).ConfigureAwait(true);
+                    await fillLine( texture , samples , imageInfo , row );
                     
                     //write line on another thread:
                     ImageLine line = new ImageLine( imageInfo , ImageLine.ESampleType.INT , false , samples , null , row );
                     await Task.Run( ()=> {
                         writer.WriteRow( line , row );
                         return Task.CompletedTask;
-                    } ).ConfigureAwait(true);
+                    } );
                 }
                 writer.End();
             }
@@ -437,7 +437,7 @@ namespace Pngcs.Unity
             Texture2D result = null;
             try
             {
-                var readout = await ReadColorsAsync( filePath ).ConfigureAwait(true);
+                var readout = await ReadColorsAsync( filePath );
                 result = new Texture2D( readout.width , readout.height , readout.textureFormatInfered , false , true );
                 result.SetPixels( readout.pixels );
                 result.Apply();
