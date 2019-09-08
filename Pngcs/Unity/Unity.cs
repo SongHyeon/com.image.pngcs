@@ -510,7 +510,7 @@ namespace Pngcs.Unity
             }
             finally
             {
-                if( reader!=null ) reader.End();
+                if( reader!=null ) reader.Dispose();
             }
             return results;
         }
