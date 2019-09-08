@@ -487,7 +487,7 @@ namespace Pngcs.Unity
             
                 int channels = info.Channels;
                 int bitDepth = info.BitDepth;
-                if( info.Indexed ) { throw new System.NotImplementedException( "indexed png not implemented" ); }
+                if( info.Indexed ) throw new System.NotImplementedException("indexed png not implemented");
 
                 //select appropriate texture format:
                 results.textureFormatInfered = GetTextureFormat( bitDepth , channels );
