@@ -72,7 +72,7 @@ namespace Pngcs
         /// <param name="imgInfo">Inmutable copy of PNG ImageInfo</param>
         /// <param name="sampleType">Storage for samples:INT (default) or BYTE</param>
         /// <param name="unpackedMode">If true and bitdepth less than 8, samples are unpacked. This has no effect if biddepth 8 or 16</param>
-        internal ImageLine ( ImageInfo imgInfo , ESampleType sampleType , bool unpackedMode , int[] scanLineInt , byte[] scanLineBytes , int imageRow )
+        public ImageLine ( ImageInfo imgInfo , ESampleType sampleType , bool unpackedMode , int[] scanLineInt , byte[] scanLineBytes , int imageRow )
         {
             this._imgInfo = imgInfo;
             channels = imgInfo.Channels;
