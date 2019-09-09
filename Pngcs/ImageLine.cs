@@ -100,7 +100,7 @@ namespace Pngcs
             }
         }
 
-        static internal void unpackInplaceInt ( ImageInfo iminfo , int[] src , int[] dst , bool Scale )
+        static internal void UnpackInplaceInt ( ImageInfo iminfo , int[] src , int[] dst , bool Scale )
         {
             int bitDepth = iminfo.BitDepth;
             if( bitDepth>=8 ) { return; }// nothing to do
@@ -163,7 +163,7 @@ namespace Pngcs
             dst[0] |= v0;
         }
 
-        static internal void unpackInplaceByte ( ImageInfo iminfo , byte[] src , byte[] dst , bool scale )
+        static internal void UnpackInplaceByte ( ImageInfo iminfo , byte[] src , byte[] dst , bool scale )
         {
             int bitDepth = iminfo.BitDepth;
             if( bitDepth>=8 ) return; // nothing to do
@@ -247,15 +247,15 @@ namespace Pngcs
             return b;
         }
 
-        public ImageLine unpackToNewImageLine ()
+        public ImageLine UnpackToNewImageLine ()
         {
             ImageLine newline = new ImageLine( ImgInfo , SampleType , true , null , null , this.ImageRow );
-            if( SampleType==ESampleType.INT ) unpackInplaceInt( ImgInfo , Scanline , newline.Scanline , false );
-            else unpackInplaceByte( ImgInfo , ScanlineB , newline.ScanlineB , false );
+            if( SampleType==ESampleType.INT ) UnpackInplaceInt( ImgInfo , Scanline , newline.Scanline , false );
+            else UnpackInplaceByte( ImgInfo , ScanlineB , newline.ScanlineB , false );
             return newline;
         }
 
-        public ImageLine packToNewImageLine ()
+        public ImageLine PackToNewImageLine ()
         {
             ImageLine newline = new ImageLine( ImgInfo , SampleType , false , null , null , this.ImageRow );
             if( SampleType==ESampleType.INT ) packInplaceInt( ImgInfo , Scanline , newline.Scanline , false );

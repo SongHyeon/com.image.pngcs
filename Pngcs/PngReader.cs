@@ -611,7 +611,7 @@ namespace Pngcs
             }
             if( ImgInfo.Packed && unpackedMode )
             {
-                ImageLine.unpackInplaceInt( ImgInfo , buffer , buffer , false );
+                ImageLine.UnpackInplaceInt( ImgInfo , buffer , buffer , false );
             }
         }
 
@@ -630,7 +630,7 @@ namespace Pngcs
             }
             if( ImgInfo.Packed && unpackedMode )
             {
-                ImageLine.unpackInplaceByte( ImgInfo , buffer , buffer , false );
+                ImageLine.UnpackInplaceByte( ImgInfo , buffer , buffer , false );
             }
         }
 

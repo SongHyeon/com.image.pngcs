@@ -487,10 +487,9 @@ namespace Pngcs.Unity
             
                 int channels = info.Channels;
                 int bitDepth = info.BitDepth;
-                if( info.Indexed ) throw new System.NotImplementedException("indexed png not implemented");
 
                 //select appropriate texture format:
-                results.textureFormatInfered = GetTextureFormat( bitDepth , channels );
+                results.textureFormatInfered = GetTextureFormat( bitDepth , channels , info.Indexed );
                 
                 //create pixel array:
                 await Task.Run( ()=> {
@@ -538,10 +537,9 @@ namespace Pngcs.Unity
             
                 int channels = info.Channels;
                 int bitDepth = info.BitDepth;
-                if( info.Indexed ) { throw new System.NotImplementedException( "indexed png not implemented" ); }
 
                 //select appropriate texture format:
-                results.textureFormatInfered = GetTextureFormat( bitDepth , channels );
+                results.textureFormatInfered = GetTextureFormat( bitDepth , channels , info.Indexed );
                 
                 //create pixel array:
                 ReadSamples( reader , results );
@@ -581,7 +579,7 @@ namespace Pngcs.Unity
                     for( int row=0 ; row<numRows ; row++ )
                     {
                         ImageLine imageLine = reader.ReadRow( row );
-                            ProcessNByteRow( imageLine , pixels );
+                        ProcessNByteRow( imageLine , pixels );
                     }
                 }
                 else
@@ -591,25 +589,63 @@ namespace Pngcs.Unity
                         for( int row=0 ; row<numRows ; row++ )
                         {
                             ImageLine imageLine = reader.ReadRowByte( row );
-                                Process4BitRow( imageLine , pixels );
+                            Process4BitRow( imageLine , pixels );
                         }
                     }
                     else if( bitDepth==2 )
                     {
-                        throw new System.Exception( $"bit depth {bitDepth} not implemented" );
+                        throw new System.Exception($"bit depth {bitDepth} for {channels} channels not implemented");
                     }
                     else if( bitDepth==1 )
                     {
                         for( int row=0 ; row<numRows ; row++ )
                         {
                             ImageLine imageLine = reader.ReadRowByte( row );
-                                Process1BitRow( imageLine , pixels );
+                            Process1BitRow( imageLine , pixels );
                         }
                     }
-                    else throw new System.Exception( $"bit depth {bitDepth} not implemented" );
+                    else
+                    {
+                        throw new System.Exception($"bit depth {bitDepth} for {channels} channels not implemented");
+                    }
                 }
             }
-            else { throw new System.NotImplementedException( "indexed png not implemented" ); }
+            else
+            {
+                var plte = reader.GetMetadata().GetPLTE();
+                if( bitDepth==8 )
+                {
+                    if( info.Alpha )
+                    {
+                        var trns = reader.GetMetadata().GetTRNS();// transparency metadata, can be null
+                        for( int row=0 ; row<numRows ; row++ )
+                        {
+                            ImageLine imageLine = reader.ReadRow( row );
+                            Process8BitIndexedRow( imageLine , plte , trns , pixels );
+                        }
+                    }
+                    else
+                    {
+                        for( int row=0 ; row<numRows ; row++ )
+                        {
+                            ImageLine imageLine = reader.ReadRow( row );
+                            Process8BitIndexedRow( imageLine , plte , pixels );
+                        }
+                    }
+                }
+                else if( bitDepth==4 )
+                {
+                    for( int row=0 ; row<numRows ; row++ )
+                    {
+                        ImageLine imageLine = reader.ReadRow( row );
+                        Process4BitIndexedRow( imageLine , plte , pixels );
+                    }
+                }
+                else
+                {
+                    throw new System.Exception($"bit depth {bitDepth} for {channels} channels not implemented");
+                }
+            }
         }
 
         /// <summary> Creates ImageInfo object based on given png </summary>
@@ -747,6 +783,113 @@ namespace Pngcs.Unity
             }
         }
 
+        static void Process8BitIndexedRow ( ImageLine imageLine , Chunks.PngChunkPLTE plte , Chunks.PngChunkTRNS trns , Color[] pixels )
+        {
+            #if DEBUG
+            UnityEngine.Assertions.Assert.IsNotNull( trns , "make sure this image contains no transparency data" );
+            #endif
+            
+            int row = imageLine.ImageRow;
+            ImageInfo imgInfo = imageLine.ImgInfo;
+            int numRows = imgInfo.Rows;
+            int numCols = imgInfo.Cols;
+            int bitDepth = imgInfo.BitDepth;
+            int channels = imgInfo.Channels;// int channels = 4;
+            float max = GetBitDepthMaxValue( bitDepth );
+            int[] paletteAlpha = trns.PaletteAlpha;
+            int numIndicesWithAlpha = paletteAlpha.Length;
+            if( imageLine.SampleType==ImageLine.ESampleType.BYTE )
+            {
+                byte[] scanline = imageLine.ScanlineB;
+                for( int col=0 ; col<numCols ; col++ )
+                {
+                    int index = scanline[col] & 0xFF;
+                    RGB<int> rgb = plte.GetEntryRgb( index , col*channels );
+                    RGBA<int> rgba = rgb.RGBA( index<numIndicesWithAlpha ? paletteAlpha[index] : 255 );
+                    pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] = RGBA.ToColor( rgba , max );
+                }
+            }
+            else
+            {
+                int[] scanline = imageLine.Scanline;
+                for( int col=0 ; col<numCols ; col++ )
+                {
+                    int index = scanline[col];
+                    RGB<int> rgb = plte.GetEntryRgb( index , col*channels );
+                    RGBA<int> rgba = rgb.RGBA( index<numIndicesWithAlpha ? paletteAlpha[index] : 255 );
+                    pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] = RGBA.ToColor( rgba , max );
+                }
+            }
+        }
+        static void Process8BitIndexedRow ( ImageLine line , Chunks.PngChunkPLTE plte , Color[] pixels )
+        {
+            int row = line.ImageRow;
+            ImageInfo imgInfo = line.ImgInfo;
+            int numRows = imgInfo.Rows;
+            int numCols = imgInfo.Cols;
+            int bitDepth = imgInfo.BitDepth;
+            int channels = imgInfo.Channels;// int channels = 3;
+            float max = GetBitDepthMaxValue( bitDepth );
+            if( line.SampleType==ImageLine.ESampleType.BYTE )
+            {
+                byte[] scanline = line.ScanlineB;
+                for( int col=0 ; col<numCols ; col++ )
+                {
+                    int index = scanline[col] & 0xFF;
+                    RGB<int> rgb = plte.GetEntryRgb( index , col*channels );
+                    pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] = RGB.ToColor( rgb , max );
+                }
+            }
+            else
+            {
+                int[] scanline = line.Scanline;
+                for( int col=0 ; col<numCols ; col++ )
+                {
+                    int index = scanline[col];
+                    RGB<int> rgb = plte.GetEntryRgb( index , col*channels );
+                    pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] = RGB.ToColor( rgb , max );
+                }
+            }
+        }
+
+        static void Process4BitIndexedRow ( ImageLine line , Chunks.PngChunkPLTE plte , Color[] pixels )
+        {
+            if( !line.SamplesUnpacked ) line = line.UnpackToNewImageLine();
+            int row = line.ImageRow;
+            ImageInfo info = line.ImgInfo;
+            int numRows = info.Rows;
+            int numCols = info.Cols;
+            int channels = info.Channels;// int channels = 3;
+            int numSamples = numCols * channels;
+            int bitDepth = info.BitDepth;
+            float max = GetBitDepthMaxValue( bitDepth );
+            if( line.SampleType==ImageLine.ESampleType.BYTE )
+            {
+                byte[] scanline = line.ScanlineB;
+                for( int col=0 ; col<numCols/2 ; col++ )
+                {
+                    // int index = scanline[col] & 0xFF;
+                    // RGB<int> rgb = plte.GetEntryRgb( index , col*channels );
+                    // pixels[ IndexPngToTexture( row , col , numRows , numCols ) ] = RGB.ToColor( rgb , max );
+
+                    byte B = scanline[ col ];
+                    int lhsIndex = (B & 0xF0) >> 4; //Left hand nybble
+                    int rhsIndex = (B & 0x0F);      //Right hand nybble
+
+                    RGB<int> lhsRgb = plte.GetEntryRgb( lhsIndex , col*channels );
+                    RGB<int> rhsRgb = plte.GetEntryRgb( rhsIndex , col*channels );
+                    
+                    pixels[ IndexPngToTexture( row , col*2+0 , numRows , numCols ) ] = RGB.ToColor( lhsRgb , max );
+                    pixels[ IndexPngToTexture( row , col*2+1 , numRows , numCols ) ] = RGB.ToColor( rhsRgb , max );
+                }
+            }
+            else
+            {
+                throw new System.Exception($"Unpacking int not implemented, bit depth {bitDepth} for {channels} channels");
+                //TODO: 1 int will contain 16 indices I believe
+            }
+        }
+
         /// <summary> Texture2D's rows start from the bottom while PNG from the top. Hence inverted y/row. </summary>
         public static int IndexPngToTexture ( int row , int col , int numRows , int numCols )
         {
@@ -775,7 +918,7 @@ namespace Pngcs.Unity
                 case TextureFormat.RGBA32: return 8;
                 case TextureFormat.RGBAHalf: return 16;
                 case TextureFormat.RGBAFloat: return 32;
-                default: throw new System.NotImplementedException( $"format '{ format }' not implemented" );
+                default: throw new System.NotImplementedException($"format '{format}' not implemented");
             }
         }
 
@@ -808,26 +951,27 @@ namespace Pngcs.Unity
         }
 
         /// <summary> Guess-timate most appropriate TextureFormat for given specification. </summary>
-        public static TextureFormat GetTextureFormat ( int bitDepth , int channels )
+        public static TextureFormat GetTextureFormat ( int bitDepth , int channels , bool indexed )
         {
-            switch ( bitDepth*10 + channels )
+            switch ( bitDepth*10 + channels + (indexed?1000:0) )
             {
                 case 11: return TextureFormat.Alpha8;
+                case 21: return TextureFormat.Alpha8;
                 case 41: return TextureFormat.Alpha8;
-                //case 43: return TextureFormat.DXT1;//indexed colors not implemented yet
                 case 44: return TextureFormat.RGBA4444;
-                case 82: return TextureFormat.Alpha8;
-                //case 84: return TextureFormat.DXT5;//no way to infer between DXT5 and RGBA32, prefer one for runtime use
-                case 84: return TextureFormat.RGBA32;
-                case 83: return TextureFormat.RGB24;
-                //case 81: return TextureFormat.Alpha8;//no way to infer between Alpha8 and R8, BUT Alpha8 was causing a problem, because grayscale 8bit channel seems to be saved as R in png (ie: reported as non-alpha image on read)
                 case 81: return TextureFormat.Alpha8;
+                case 82: return TextureFormat.Alpha8;
+                case 83: return TextureFormat.RGB24;
+                case 84: return TextureFormat.RGBA32;
                 case 161: return TextureFormat.R16;
-                //case 161: return TextureFormat.RHalf;//no way to infer between R16 and RHalf
                 case 163: return TextureFormat.RGB565;
                 case 164: return TextureFormat.RGBAHalf;
                 case 321: return TextureFormat.RFloat;
-                default: throw new System.NotImplementedException( $"bit depth '{ bitDepth }' for '{ channels }' channels not implemented" );
+                case 1011: return TextureFormat.Alpha8;
+                case 1021: return TextureFormat.RGB24;
+                case 1041: return TextureFormat.RGB24;
+                case 1081: return TextureFormat.RGB24;
+                default: throw new System.NotImplementedException($"bit depth '{bitDepth}' for '{channels}' channels not implemented");
             }
         }
 

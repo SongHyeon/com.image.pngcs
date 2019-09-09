@@ -2,9 +2,7 @@ namespace Pngcs
 {
     /// <summary>
     /// Bunch of utility static methods to process/analyze an image line. 
-    /// 
     /// Not essential at all, some methods are probably to be removed if future releases.
-    /// 
     /// TODO: document this better
     /// </summary>
     public class ImageLineHelper
@@ -20,27 +18,28 @@ namespace Pngcs
         /// <returns>R G B (one byte per sample)</returns>
         public static int[] Palette2rgb ( ImageLine line , Chunks.PngChunkPLTE pal , Chunks.PngChunkTRNS trns , int[] buf )
         {
+            int numCols = line.ImgInfo.Cols;
             bool isalpha = trns!=null;
             int channels = isalpha ? 4 : 3;
-            int nsamples = line.ImgInfo.Cols * channels;
+            int nsamples = numCols * channels;
             if( buf==null || buf.Length<nsamples )
             {
                 buf = new int[ nsamples ];
             }
             if( line.SamplesUnpacked==false )
             {
-                line = line.unpackToNewImageLine();
+                line = line.UnpackToNewImageLine();
             }
             bool isbyte = line.SampleType==Pngcs.ImageLine.ESampleType.BYTE;
-            int nindexesWithAlpha = trns!=null ? trns.GetPalletteAlpha().Length : 0;
-            for( int c=0 ; c<line.ImgInfo.Cols ; c++ )
+            int nindexesWithAlpha = trns!=null ? trns.PaletteAlpha.Length : 0;
+            for( int col=0 ; col<numCols ; col++ )
             {
-                int index = isbyte ? (line.ScanlineB[c] & 0xFF) : line.Scanline[c];
-                pal.GetEntryRgb( index , buf , c * channels );
+                int index = isbyte ? (line.ScanlineB[col] & 0xFF) : line.Scanline[col];
+                pal.GetEntryRgb( index , buf , col * channels );
                 if( isalpha )
                 {
-                    int alpha = index<nindexesWithAlpha ? trns.GetPalletteAlpha()[index] : 255;
-                    buf[ c * channels + 3 ] = alpha;
+                    int alpha = index<nindexesWithAlpha ? trns.PaletteAlpha[index] : 255;
+                    buf[ col * channels + 3 ] = alpha;
                 }
             }
             return buf;
@@ -48,53 +47,53 @@ namespace Pngcs
 
         public static int[] Palette2rgb ( ImageLine line , Chunks.PngChunkPLTE pal , int[] buf ) => Palette2rgb( line , pal , null , buf );
 
-        public static int ToARGB8 ( int r , int g , int b )
+        public static ARGB8<int> ToARGB8 ( int r , int g , int b )
         {
             unchecked
             {
-                return ((int)(0xFF000000)) | ((r)<<16) | ((g)<<8) | (b);
+                return new ARGB8<int>{ value = ((int)(0xFF000000)) | ((r)<<16) | ((g)<<8) | (b) };
             }
         }
 
-        public static int ToARGB8 ( int r , int g , int b , int a ) => ((a)<<24) | ((r)<<16) | ((g)<<8) | (b);
+        public static ARGB8<int> ToARGB8 ( int r , int g , int b , int a ) => new ARGB8<int>{ value = ((a)<<24) | ((r)<<16) | ((g)<<8) | (b) };
 
-         public static int ToARGB8 ( int[] buff , int offset , bool alpha )
+         public static ARGB8<int> ToARGB8 ( int[] buff , int offset , bool alpha )
          {
             return alpha
                 ? ToARGB8( buff[offset++] , buff[offset++] , buff[offset++] , buff[offset] )
                 : ToARGB8( buff[offset++] , buff[offset++] , buff[offset] );
          }
 
-         public static int ToARGB8 ( byte[] buff , int offset , bool alpha )
+         public static ARGB8<int> ToARGB8 ( byte[] buff , int offset , bool alpha )
          {
             return alpha
                 ? ToARGB8( buff[offset++] , buff[offset++] , buff[offset++] , buff[offset] )
                 : ToARGB8( buff[offset++] , buff[offset++] , buff[offset] );
          }
 
-        public static void FromARGB8 ( int val , int[] buff , int offset , bool alpha )
+        public static void FromARGB8 ( ARGB8<int> value , int[] buff , int offset , bool alpha )
         {
-            buff[ offset++ ] = ((val>>16) & 0xFF);
-            buff[ offset++ ] = ((val>>8) & 0xFF);
-            buff[ offset ] = (val & 0xFF);
+            buff[ offset++ ] = ((value>>16) & 0xFF);
+            buff[ offset++ ] = ((value>>8) & 0xFF);
+            buff[ offset ] = (value & 0xFF);
             if( alpha )
             {
-                buff[ offset + 1 ] = ((val>>24) & 0xFF);
+                buff[ offset + 1 ] = ((value>>24) & 0xFF);
             }
         }
 
-        public static void FromARGB8 ( int val , byte[] buff , int offset , bool alpha )
+        public static void FromARGB8 ( ARGB8<int> value , byte[] buff , int offset , bool alpha )
         {
-            buff[ offset++ ] = (byte)((val>>16) & 0xFF);
-            buff[ offset++ ] = (byte)((val>>8) & 0xFF);
-            buff[ offset ] = (byte)(val & 0xFF);
+            buff[ offset++ ] = (byte)((value>>16) & 0xFF);
+            buff[ offset++ ] = (byte)((value>>8) & 0xFF);
+            buff[ offset ] = (byte)(value & 0xFF);
             if( alpha )
             {
-                buff[ offset + 1 ] = (byte)((val>>24) & 0xFF);
+                buff[ offset + 1 ] = (byte)((value>>24) & 0xFF);
             }
         }
 
-        public static int GetPixelToARGB8 ( ImageLine line , int column )
+        public static ARGB8<int> GetPixelToARGB8 ( ImageLine line , int column )
         {
             if( line.IsInt() )
             {
@@ -106,7 +105,7 @@ namespace Pngcs
             }
         }
 
-        public static void SetPixelFromARGB8 ( ImageLine line , int column , int argb )
+        public static void SetPixelFromARGB8 ( ImageLine line , int column , ARGB8<int> argb )
         {
             if( line.IsInt() )
             {
@@ -190,10 +189,7 @@ namespace Pngcs
             }
         }
 
-        public static void SetPixel ( ImageLine line , int col , int r , int g , int b )
-        {
-            SetPixel( line , col , r , g , b , line.MaxSampleVal );
-        }
+        public static void SetPixel ( ImageLine line , int col , int r , int g , int b ) => SetPixel( line , col , r , g , b , line.MaxSampleVal );
 
         public static double ReadDouble ( ImageLine line , int pos )
         {
@@ -250,7 +246,7 @@ namespace Pngcs
             }
             if( imgInfo.Packed )
             {
-                ImageLine.unpackInplaceInt( imgInfo , src , dst , scale );
+                ImageLine.UnpackInplaceInt( imgInfo , src , dst , scale );
             }
             else
             {
@@ -269,7 +265,7 @@ namespace Pngcs
             }
             if( imgInfo.Packed )
             {
-                ImageLine.unpackInplaceByte( imgInfo , src , dst , scale );
+                ImageLine.UnpackInplaceByte( imgInfo , src , dst , scale );
             }
             else
             {

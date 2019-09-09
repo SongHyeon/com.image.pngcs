@@ -9,15 +9,15 @@ namespace Pngcs.Chunks
 
         public const string ID = ChunkHelper.PLTE;
 
-        int nentries = 0;
-        
-        /// <summary></summary>
+        int numEntries = 0;
+        public int NumEntries => numEntries;
+
         int[] entries;
 
         public PngChunkPLTE ( ImageInfo info )
             : base( ID , info )
         {
-            this.nentries = 0;
+            this.numEntries = 0;
         }
 
 
@@ -25,13 +25,13 @@ namespace Pngcs.Chunks
 
         public override ChunkRaw CreateRawChunk ()
         {
-            int len = 3 * nentries;
+            int len = 3 * numEntries;
             int[] rgb = new int[3];
             ChunkRaw c = createEmptyChunk( len , true );
             byte[] data = c.Data;
-            for( int n=0 , i=0 ; n<nentries ; n++ )
+            for( int n=0 , i=0 ; n<numEntries ; n++ )
             {
-                GetEntryRgb( n , rgb );
+                GetEntryRgb( n , rgb , 0 );
                 data[i++] = (byte)rgb[0];
                 data[i++] = (byte)rgb[1];
                 data[i++] = (byte)rgb[2];
@@ -43,7 +43,7 @@ namespace Pngcs.Chunks
         {
             SetNentries( chunk.Len/3 );
             byte[] data = chunk.Data;
-            for( int n=0 , i=0 ; n<nentries ; n++ )
+            for( int n=0 , i=0 ; n<numEntries ; n++ )
             {
                 SetEntry(
                     n ,
@@ -58,22 +58,22 @@ namespace Pngcs.Chunks
         {
             PngChunkPLTE otherx = (PngChunkPLTE)other;
             this.SetNentries( otherx.GetNentries() );
-            System.Array.Copy( otherx.entries , 0 , entries , 0 , nentries );
+            System.Array.Copy( otherx.entries , 0 , entries , 0 , numEntries );
         }
 
         /// <summary> Also allocates array </summary>
-        /// <param name="nentries">1-256</param>
-        public void SetNentries ( int nentries )
+        /// <param name="numEntries">1-256</param>
+        public void SetNentries ( int numEntries )
         {
-            this.nentries = nentries;
-            if( nentries<1 || nentries>256 ) throw new System.Exception($"invalid pallette - nentries={nentries}");
-            if( entries==null || entries.Length!=nentries )// alloc
-                entries = new int[nentries];
+            this.numEntries = numEntries;
+            if( numEntries<1 || numEntries>256 ) throw new System.Exception($"invalid pallette - nentries={numEntries}");
+            if( entries==null || entries.Length!=numEntries )// alloc
+                entries = new int[numEntries];
         }
 
-        public int GetNentries () => nentries;
+        public int GetNentries () => numEntries;
 
-        public void SetEntry ( int n , int r , int g , int b ) => entries[n] = ((r<<16) | (g<<8) | b);
+        public void SetEntry ( int n , int r , int g , int b ) => entries[n] = (r<<16) | (g<<8) | b;
 
         /// <summary> as packed RGB8 </summary>
         public int GetEntry ( int n ) => entries[n];
@@ -87,17 +87,24 @@ namespace Pngcs.Chunks
             rgb[offset+1] = ((v & 0xff00)>>8);
             rgb[offset+2] = (v & 0xff);
         }
-
-        /// <summary> shortcut: GetEntryRgb(index, int[] rgb, 0) </summary>
-        public void GetEntryRgb ( int n , int[] rgb ) => GetEntryRgb( n , rgb , 0 );
+        /// <summary> Gets n'th entry at given offset </summary>
+        public RGB<int> GetEntryRgb ( int index , int offset )
+        {
+            int v = entries[index];
+            return new RGB<int>{
+                R = (v & 0xff0000)>>16 ,
+                G = (v & 0xff00)>>8 ,
+                B = v & 0xff
+            };
+        }
 
         /// <summary> minimum allowed bit depth, given palette size </summary>
         /// <returns>1-2-4-8</returns>
         public int MinBitDepth ()
         {
-            if( nentries<=2 ) return 1;
-            else if( nentries<=4 ) return 2;
-            else if( nentries<=16 ) return 4;
+            if( numEntries<=2 ) return 1;
+            else if( numEntries<=4 ) return 2;
+            else if( numEntries<=16 ) return 4;
             else return 8;
         }
     }
