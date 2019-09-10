@@ -23,7 +23,7 @@ namespace Pngcs.Chunks
         {
             ChunkRaw chunk = null;
             if( !ImgInfo.Indexed ) throw new System.Exception("only indexed images accept a HIST chunk");
-            chunk = createEmptyChunk( hist.Length*2 , true );
+            chunk = CreateEmptyChunk( hist.Length*2 , true );
             byte[] data = chunk.Data;
             for( int i=0 ; i<hist.Length ; i++ )
             {

@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// iCCP Chunk: see http://www.w3.org/TR/PNG/#11iCCP
-    /// </summary>
+    /// <summary> iCCP Chunk: see http://www.w3.org/TR/PNG/#11iCCP </summary>
     public class PngChunkICCP : PngChunkSingle
     {
         
@@ -21,7 +19,7 @@ namespace Pngcs.Chunks
 
         public override ChunkRaw CreateRawChunk ()
         {
-            ChunkRaw chunk = createEmptyChunk( profileName.Length+compressedProfile.Length+2 , true );
+            ChunkRaw chunk = CreateEmptyChunk( profileName.Length+compressedProfile.Length+2 , true );
             byte[] data = chunk.Data;
             System.Array.Copy( Chunks.ChunkHelper.ToBytes(profileName) , 0 , data , 0 , profileName.Length );
             data[profileName.Length] = 0;
@@ -61,13 +59,13 @@ namespace Pngcs.Chunks
         public void SetProfileNameAndContent ( string name , byte[] profile )
         {
             profileName = name;
-            compressedProfile = ChunkHelper.compressBytes(profile, true);
+            compressedProfile = ChunkHelper.CompressBytes(profile, true);
         }
             
         public string GetProfileName () => profileName;
 
         /// <summary> This uncompresses the string! </summary>
-        public byte[] GetProfile () => ChunkHelper.compressBytes( compressedProfile , false );
+        public byte[] GetProfile () => ChunkHelper.CompressBytes( compressedProfile , false );
 
         public string GetProfileAsString () => ChunkHelper.ToString(GetProfile());
 

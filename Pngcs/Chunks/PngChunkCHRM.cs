@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// cHRM chunk, see http://www.w3.org/TR/PNG/#11cHRM
-    /// </summary>
+    /// <summary> cHRM chunk, see http://www.w3.org/TR/PNG/#11cHRM </summary>
     public class PngChunkCHRM : PngChunkSingle
     {
 
@@ -24,7 +22,7 @@ namespace Pngcs.Chunks
         public override ChunkRaw CreateRawChunk ()
         {
             ChunkRaw chunk = null;
-            chunk = createEmptyChunk( 32 , true );
+            chunk = CreateEmptyChunk( 32 , true );
             byte[] data = chunk.Data;
             PngHelperInternal.WriteInt4tobytes( PngHelperInternal.DoubleToInt100000(whitex), data , 0 );
             PngHelperInternal.WriteInt4tobytes( PngHelperInternal.DoubleToInt100000(whitey), data , 4 );

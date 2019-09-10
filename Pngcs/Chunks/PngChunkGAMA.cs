@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// gAMA chunk, see http://www.w3.org/TR/PNG/#11gAMA
-    /// </summary>
+    /// <summary> gAMA chunk, see http://www.w3.org/TR/PNG/#11gAMA </summary>
     public class PngChunkGAMA : PngChunkSingle
     {
 
@@ -19,7 +17,7 @@ namespace Pngcs.Chunks
 
         public override ChunkRaw CreateRawChunk ()
         {
-            ChunkRaw chunk = createEmptyChunk(4,true);
+            ChunkRaw chunk = CreateEmptyChunk(4,true);
             int g = (int)( gamma * 100000 + 0.5d );
             PngHelperInternal.WriteInt4tobytes( g , chunk.Data , 0 );
             return chunk;

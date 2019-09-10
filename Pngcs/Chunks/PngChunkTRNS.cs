@@ -27,13 +27,13 @@ namespace Pngcs.Chunks
             ChunkRaw chunk = null;
             if( ImgInfo.Greyscale )
             {
-                chunk = createEmptyChunk( 2 , true );
+                chunk = CreateEmptyChunk( 2 , true );
                 byte[] data = chunk.Data;
                 PngHelperInternal.WriteInt2tobytes( Gray , data , 0 );
             }
             else if( ImgInfo.Indexed )
             {
-                chunk = createEmptyChunk( PaletteAlpha.Length , true );
+                chunk = CreateEmptyChunk( PaletteAlpha.Length , true );
                 byte[] data = chunk.Data;
                 int length = data.Length;
 
@@ -42,7 +42,7 @@ namespace Pngcs.Chunks
             }
             else
             {
-                chunk = createEmptyChunk( 6 , true );
+                chunk = CreateEmptyChunk( 6 , true );
                 byte[] data = chunk.Data;
 
                 PngHelperInternal.WriteInt2tobytes( Rgb.R , data , 0 );

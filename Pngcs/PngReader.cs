@@ -215,11 +215,7 @@ namespace Pngcs
         {
             if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_5_AFTERIDAT )
             {
-                try
-                {
-                    idatIstream.Close();
-                }
-                catch( System.Exception ) { }//yyyhm... are you sure?
+                if( idatIstream!=null ) idatIstream.Close();
                 ReadLastChunks();
             }
             Close();
@@ -228,12 +224,9 @@ namespace Pngcs
         void Close ()
         {
             if( CurrentChunkGroup<ChunksList.CHUNK_GROUP_6_END )
-            {// this could only happen if forced close
-                try
-                {
-                    idatIstream.Close();
-                }
-                catch( System.Exception ) { }//yyyhm... are you sure?
+            {
+                // this could only happen if forced close
+                if( idatIstream!=null ) idatIstream.Close();
                 CurrentChunkGroup = ChunksList.CHUNK_GROUP_6_END;
             }
             if( ShouldCloseStream )
@@ -253,12 +246,9 @@ namespace Pngcs
                 case Pngcs.FilterType.FILTER_UP:        UnfilterRowUp(nbytes);          break;
                 case Pngcs.FilterType.FILTER_AVERAGE:   UnfilterRowAverage(nbytes);     break;
                 case Pngcs.FilterType.FILTER_PAETH:     UnfilterRowPaeth(nbytes);       break;
-                default: throw new IO.IOException($"Filter type {ftn} not implemented");
+                default:                                throw new IO.IOException($"Filter type {ftn} not implemented");
             }
-            if( crctest!=null )
-            {
-                crctest.Update( rowb , 1 , nbytes );
-            }
+            if( crctest!=null ) crctest.Update( rowb , 1 , nbytes );
         }
 
 
@@ -463,14 +453,9 @@ namespace Pngcs
         /// </remarks>
         internal void logWarn ( string warn ) => System.Console.Error.WriteLine( warn );
 
-        /// <summary>
-        /// Returns the ancillary chunks available
-        /// </summary>
-        /// <remarks>
-        /// If the rows have not yet still been read, this includes
-        /// only the chunks placed before the pixels (IDAT)
-        /// </remarks>
-        /// <returns>ChunksList</returns>
+        /// <summary> Returns the ancillary chunks available </summary>
+        /// <remarks> If the rows have not yet still been read, this includes only the chunks placed before the pixels (IDAT) </remarks>
+        /// <returns> ChunksList </returns>
         public ChunksList GetChunksList ()
         {
             if( FirstChunksNotYetRead() )
@@ -480,7 +465,7 @@ namespace Pngcs
 
         /// <summary> Returns the ancillary chunks available </summary>
         /// <remarks> See GetChunksList </remarks>
-        /// <returns>PngMetadata</returns>
+        /// <returns> PngMetadata </returns>
         public PngMetadata GetMetadata ()
         {
             if( FirstChunksNotYetRead() )
@@ -491,8 +476,8 @@ namespace Pngcs
         }
 
         /// <summary> Reads the row using ImageLine as buffer </summary>
-        ///<param name="imageRow">row number - just as a check</param>
-        /// <returns>the ImageLine that also is available inside this object</returns>
+        ///<param name="imageRow"> Row number - just as a check </param>
+        /// <returns> ImageLine that also is available inside this object </returns>
         public ImageLine ReadRow ( int imageRow ) => imgLine==null || imgLine.SampleType!=ImageLine.ESampleType.BYTE ? ReadRowInt(imageRow) : ReadRowByte(imageRow);
 
         public ImageLine ReadRowInt ( int imageRow )
@@ -777,16 +762,9 @@ namespace Pngcs
             }
             // we read directly from the compressed stream, we dont decompress nor chec CRC
             iIdatCstream.DisableCrcCheck();
-            try
-            {
-                int r;
-                do
-                {
-                    r = iIdatCstream.Read( rowbfilter , 0 , rowbfilter.Length );
-                }
-                while( r>=0 );
-            }
-            catch( IO.IOException e ) { throw new IO.IOException( "error in raw read of IDAT" , e ); }
+            int r;
+            do { r = iIdatCstream.Read( rowbfilter , 0 , rowbfilter.Length ); }
+            while( r>=0 );
             offset = iIdatCstream.GetOffset();
             if( offset<0 ) throw new System.Exception($"bad offset ?? {offset}");
             if( MaxTotalBytesRead>0 && offset>=MaxTotalBytesRead ) throw new IO.IOException($"Reading IDAT: Maximum total bytes to read exceeeded: {MaxTotalBytesRead} offset:{offset}");

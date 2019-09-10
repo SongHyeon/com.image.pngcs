@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// pHYs chunk: http://www.w3.org/TR/PNG/#11pHYs
-    /// </summary>
+    /// <summary> pHYs chunk: http://www.w3.org/TR/PNG/#11pHYs </summary>
     public class PngChunkPHYS : PngChunkSingle
     {
         
@@ -10,9 +8,7 @@ namespace Pngcs.Chunks
         public long PixelsxUnitX { get; set; }
         public long PixelsxUnitY { get; set; }
 
-        /// <summary>
-        /// 0: unknown 1:metre
-        /// </summary>
+        /// <summary> 0: unknown 1:metre </summary>
         public int Units { get; set; }
 
         public PngChunkPHYS ( ImageInfo info )
@@ -25,7 +21,7 @@ namespace Pngcs.Chunks
 
         public override ChunkRaw CreateRawChunk ()
         {
-            ChunkRaw chunk = createEmptyChunk( 9 , true );
+            ChunkRaw chunk = CreateEmptyChunk( 9 , true );
             byte[] data = chunk.Data;
             PngHelperInternal.WriteInt4tobytes( (int)PixelsxUnitX , data , 0 );
             PngHelperInternal.WriteInt4tobytes( (int)PixelsxUnitY , data , 4 );

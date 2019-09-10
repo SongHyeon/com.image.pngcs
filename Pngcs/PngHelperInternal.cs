@@ -2,9 +2,7 @@ using IO = System.IO;
 
 namespace Pngcs
 {
-    /// <summary>
-    /// Some utility static methods for internal use.
-    /// </summary>
+    /// <summary> Some utility static methods for internal use. </summary>
     public class PngHelperInternal
     {
 
@@ -36,29 +34,21 @@ namespace Pngcs
         /// <summary> -1 si eof </summary>
         public static int ReadInt2 ( IO.Stream mask0 )
         {
-            try
-            {
-                int b1 = mask0.ReadByte();
-                int b2 = mask0.ReadByte();
-                if( b1==-1 || b2==-1 ) return -1;
-                return (b1<<8) + b2;
-            }
-            catch (IO.IOException e) { throw new IO.IOException("error reading readInt2", e); }
+            int b1 = mask0.ReadByte();
+            int b2 = mask0.ReadByte();
+            if( b1==-1 || b2==-1 ) return -1;
+            return (b1<<8) + b2;
         }
 
         /// <summary> -1 si eof </summary>
         public static int ReadInt4 ( IO.Stream mask0 )
         {
-            try
-            {
-                int b1 = mask0.ReadByte();
-                int b2 = mask0.ReadByte();
-                int b3 = mask0.ReadByte();
-                int b4 = mask0.ReadByte();
-                if( b1==-1 || b2==-1 || b3==-1 || b4==-1 ) return -1;
-                return (b1<<24) + (b2<<16) + (b3<<8) + b4;
-            }
-            catch( IO.IOException e ) { throw new IO.IOException("error reading readInt4", e); }
+            int b1 = mask0.ReadByte();
+            int b2 = mask0.ReadByte();
+            int b3 = mask0.ReadByte();
+            int b4 = mask0.ReadByte();
+            if( b1==-1 || b2==-1 || b3==-1 || b4==-1 ) return -1;
+            return (b1<<24) + (b2<<16) + (b3<<8) + b4;
         }
 
         public static int ReadInt1fromByte ( byte[] b , int offset ) => (b[offset] & 0xff);
@@ -89,76 +79,38 @@ namespace Pngcs
             //Console.WriteLine("writing int " + n + " b=" + (sbyte)temp[0] + "," + (sbyte)temp[1] + "," + (sbyte)temp[2] + "," + (sbyte)temp[3]);
         }
 
-        /// <summary>
-        /// guaranteed to read exactly len bytes. throws error if it cant
-        /// </summary>
+        /// <summary> Guaranteed to read exactly len bytes. throws error if it cant </summary>
         public static void ReadBytes ( IO.Stream mask0 , byte[] b , int offset , int len )
         {
             if( len==0 ) return;
-            try
+            int read = 0;
+            while( read<len )
             {
-                int read = 0;
-                while( read<len )
-                {
-                    int n = mask0.Read( b , offset+read , len-read );
-                    if( n<1 ) throw new System.Exception($"error reading, {n} != {len}");
-                    read += n;
-                }
+                int n = mask0.Read( b , offset+read , len-read );
+                if( n<1 ) throw new System.Exception($"error reading, {n} != {len}");
+                read += n;
             }
-            catch( IO.IOException e ) { throw new IO.IOException("error reading", e); }
         }
 
         public static void SkipBytes ( IO.Stream istream , int len )
         {
             byte[] buf = new byte[8192 * 4];
             int read, remain = len;
-            try
+            while( remain>0 )
             {
-                while( remain>0 )
-                {
-                    read = istream.Read( buf , 0 , remain>buf.Length ? buf.Length : remain );
-                    if( read<0 ) throw new IO.IOException("error reading (skipping) : EOF");
-                    remain -= read;
-                }
+                read = istream.Read( buf , 0 , remain>buf.Length ? buf.Length : remain );
+                if( read<0 ) throw new IO.IOException("error reading (skipping) : EOF");
+                remain -= read;
             }
-            catch (IO.IOException e) { throw new IO.IOException("error reading (skipping)", e); }
         }
 
-        public static void WriteBytes ( IO.Stream ostream , byte[] b )
-        {
-            try
-            {
-                ostream.Write(b, 0, b.Length);
-            }
-            catch (IO.IOException e) { throw (e); }
-        }
+        public static void WriteBytes ( IO.Stream ostream , byte[] b ) => ostream.Write( b , 0 , b.Length );
 
-        public static void WriteBytes ( IO.Stream ostream , byte[] b , int offset , int n )
-        {
-            try
-            {
-                ostream.Write( b , offset , n );
-            }
-            catch (IO.IOException e) { throw e; }
-        }
+        public static void WriteBytes ( IO.Stream ostream , byte[] b , int offset , int n ) => ostream.Write( b , offset , n );
 
-        public static int ReadByte ( IO.Stream mask0 )
-        {
-            try
-            {
-                return mask0.ReadByte();
-            }
-            catch (IO.IOException e) { throw e; }
-        }
+        public static int ReadByte ( IO.Stream mask0 ) => mask0.ReadByte();
 
-        public static void WriteByte ( IO.Stream ostream , byte b )
-        {
-            try
-            {
-                ostream.WriteByte( (byte)b );
-            }
-            catch (IO.IOException e) { throw e; }
-        }
+        public static void WriteByte ( IO.Stream ostream , byte b ) => ostream.WriteByte( (byte)b );
 
         // a = left, b = above, c = upper left
         public static int UnfilterRowPaeth ( int r , int a , int b , int c ) => (r+FilterPaethPredictor(a,b,c)) & 0xFF;

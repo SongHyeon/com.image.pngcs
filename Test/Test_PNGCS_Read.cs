@@ -11,9 +11,10 @@ using Pngcs.Unity;
 
 namespace PNGCS.Test
 {
-    public class Test_PNGCS_Load : EditorWindow, System.IDisposable
+    public class Test_PNGCS_Read : EditorWindow, System.IDisposable
     {
 
+        string PATH;
         List<Texture2D> _loaded = new List<Texture2D>(100);
 
         void OnEnable () => CreateUI();
@@ -21,18 +22,18 @@ namespace PNGCS.Test
 
         void CreateUI ()
         {
+            if( PATH==null ) return;
+
             VisualElement ROOT = rootVisualElement;
             ScrollView SCROLL;
-            string path_load = Application.streamingAssetsPath;
             {
-                ROOT.Add( new Label($"File path: {path_load}") );
+                ROOT.Add( new Label($"File path: {PATH}") );
             
-                Button BUTTON = new Button();
-                BUTTON.text = "Reload";
-                BUTTON.RegisterCallback( (MouseUpEvent e) => {
+                Button BUTTON = new Button( () => {
                     ROOT.Clear();
                     CreateUI();
                 } );
+                BUTTON.text = "Reload";
                 ROOT.Add( BUTTON );
 
                 SCROLL = new ScrollView();
@@ -45,7 +46,7 @@ namespace PNGCS.Test
             var watch = new System.Diagnostics.Stopwatch();
             VisualElement ROW = null;
             int image_count = 0;
-            foreach( string path in IO.Directory.GetFiles(path_load) )
+            foreach( string path in IO.Directory.GetFiles(PATH) )
             {
                 if( path.EndsWith(".png") )
                 {
@@ -91,12 +92,20 @@ namespace PNGCS.Test
             }
         }
 
-        [MenuItem("Test/PNGCS Load")]
+        [MenuItem("Test/PNGCS/Read")]
         static void ShowWindow ()
         {
-            var window = GetWindow<Test_PNGCS_Load>();
+            var window = GetWindow<Test_PNGCS_Read>();
             window.titleContent = new GUIContent(window.GetType().Name);
-            window.minSize = new Vector2{ x=300 , y=300 };
+            window.PATH = Application.streamingAssetsPath;
+            window.OnEnable();
+        }
+        public static void ShowWindow ( string path )
+        {
+            var window = GetWindow<Test_PNGCS_Read>();
+            window.titleContent = new GUIContent(window.GetType().Name);
+            window.PATH = path;
+            window.OnEnable();
         }
 
         public void Dispose ()

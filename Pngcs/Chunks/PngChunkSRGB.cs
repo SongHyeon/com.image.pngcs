@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// sRGB chunk: http://www.w3.org/TR/PNG/#11sRGB
-    /// </summary>
+    /// <summary> sRGB chunk: http://www.w3.org/TR/PNG/#11sRGB </summary>
     public class PngChunkSRGB : PngChunkSingle
     {
 
@@ -26,7 +24,7 @@ namespace Pngcs.Chunks
         public override ChunkRaw CreateRawChunk ()
         {
             ChunkRaw c = null;
-            c = createEmptyChunk( 1 , true );
+            c = CreateEmptyChunk( 1 , true );
             c.Data[0] = (byte)Intent;
             return c;
         }

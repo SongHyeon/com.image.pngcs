@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// tEXt chunk: latin1 uncompressed text
-    /// </summary>
+    /// <summary> tEXt chunk: latin1 uncompressed text </summary>
     public class PngChunkTEXT : PngChunkTextVar
     {
         public const string ID = ChunkHelper.tEXt;
@@ -20,7 +18,7 @@ namespace Pngcs.Chunks
             byte[] b1 = PngHelperInternal.charsetLatin1.GetBytes( key );
             byte[] b2 = PngHelperInternal.charsetLatin1.GetBytes( val );
 
-            ChunkRaw chunk = createEmptyChunk( b1.Length+b2.Length+1 , true );
+            ChunkRaw chunk = CreateEmptyChunk( b1.Length+b2.Length+1 , true );
             byte[] data = chunk.Data;
 
             System.Array.Copy( b1 , 0 , data , 0 , b1.Length );
@@ -48,5 +46,6 @@ namespace Pngcs.Chunks
             key = otherx.key;
             val = otherx.val;
         }
+        
     }
 }

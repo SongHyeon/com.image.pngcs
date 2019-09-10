@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// oFFs chunk: http://www.libpng.org/pub/png/spec/register/pngext-1.3.0-pdg.html#C.oFFs
-    /// </summary>
+    /// <summary> oFFs chunk: http://www.libpng.org/pub/png/spec/register/pngext-1.3.0-pdg.html#C.oFFs </summary>
     public class PngChunkOFFS : PngChunkSingle
     {
 
@@ -22,7 +20,7 @@ namespace Pngcs.Chunks
 
         public override ChunkRaw CreateRawChunk ()
         {
-            ChunkRaw chunk = createEmptyChunk(9, true);
+            ChunkRaw chunk = CreateEmptyChunk(9, true);
             byte[] data = chunk.Data;
             PngHelperInternal.WriteInt4tobytes( (int)posX , data , 0 );
             PngHelperInternal.WriteInt4tobytes( (int)posY , data , 4 );

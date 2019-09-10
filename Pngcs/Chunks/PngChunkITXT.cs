@@ -1,13 +1,9 @@
 using IO = System.IO;
 
-
 namespace Pngcs.Chunks
 {
-
-    /// <summary>
-    /// iTXt chunk:  http://www.w3.org/TR/PNG/#11iTXt
-    /// One of the three text chunks
-    /// </summary>
+    /// <summary> iTXt chunk:  http://www.w3.org/TR/PNG/#11iTXt </summary>
+    /// </remarks> One of the three text chunks </remarks>
     public class PngChunkITXT : PngChunkTextVar
     {
 
@@ -35,10 +31,10 @@ namespace Pngcs.Chunks
             ChunkHelper.WriteBytesToStream( ba , ChunkHelper.ToBytesUTF8(translatedTag) );
             ba.WriteByte( 0 ); // separator
             byte[] textbytes = ChunkHelper.ToBytesUTF8( val );
-            if( compressed ) textbytes = ChunkHelper.compressBytes( textbytes , true );
+            if( compressed ) textbytes = ChunkHelper.CompressBytes( textbytes , true );
             ChunkHelper.WriteBytesToStream( ba , textbytes );
             byte[] b = ba.ToArray();
-            ChunkRaw chunk = createEmptyChunk( b.Length , false );
+            ChunkRaw chunk = CreateEmptyChunk( b.Length , false );
             chunk.Data = b;
             return chunk;
         }
@@ -68,7 +64,7 @@ namespace Pngcs.Chunks
             i = nullsIdx[2] + 1;
             if( compressed )
             {
-                byte[] bytes = ChunkHelper.compressBytes( data , i , length-i , false );
+                byte[] bytes = ChunkHelper.CompressBytes( data , i , length-i , false );
                 val = ChunkHelper.ToStringUTF8(bytes);
             }
             else

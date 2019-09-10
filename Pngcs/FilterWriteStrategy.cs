@@ -42,7 +42,7 @@
             }
         }
 
-        internal bool shouldTestAll ( int rown )
+        internal bool ShouldTestAll ( int rown )
         {
             if( discoverEachLines>0 && lastRowTested+discoverEachLines<=rown )
             {
@@ -52,12 +52,11 @@
             else return false;
         }
 
-        internal void setPreference ( double none , double sub , double up , double ave , double paeth )
-            => preference = new double[]{ none, sub, up, ave, paeth };
+        internal void SetPreference ( double none , double sub , double up , double ave , double paeth ) => preference = new double[]{ none, sub, up, ave, paeth };
 
-        internal bool computesStatistics () => discoverEachLines>0;
+        internal bool ComputesStatistics () => discoverEachLines>0;
 
-        internal void fillResultsForFilter ( int rown , FilterType type , double sum , int[] histo , bool tentative )
+        internal void FillResultsForFilter ( int rown , FilterType type , double sum , int[] histo , bool tentative )
         {
             lastRowTested = rown;
             lastSums[(int)type] = sum;
@@ -80,7 +79,7 @@
             }
         }
 
-        internal FilterType gimmeFilterType ( int rown , bool useEntropy )
+        internal FilterType GimmeFilterType ( int rown , bool useEntropy )
         {
             if( currentType==FilterType.FILTER_UNKNOWN )// get better
             {

@@ -3,10 +3,7 @@ using System.Collections.Generic;
 
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// Chunks written or queued to be written 
-    /// http://www.w3.org/TR/PNG/#table53
-    /// </summary>
+    /// <summary> Chunks written or queued to be written http://www.w3.org/TR/PNG/#table53 </summary>
     public class ChunksListForWrite : ChunksList
     {
 
@@ -26,20 +23,19 @@ namespace Pngcs.Chunks
         public List<PngChunk> GetQueuedById ( string id ) => GetQueuedById( id , null );
 
         /// <summary> Same as <c>getById()</c>, but looking in the queued chunks </summary>
-        public List<PngChunk> GetQueuedById ( string id , string innerid ) => GetXById(queuedChunks, id, innerid);
+        public List<PngChunk> GetQueuedById ( string id , string innerid ) => GetXById( queuedChunks , id , innerid );
 
         /// <summary> Same as <c>getById()</c>, but looking in the queued chunks </summary>
-        public PngChunk GetQueuedById1(string id, string innerid, bool failIfMultiple) {
-            List<PngChunk> list = GetQueuedById(id, innerid);
-            if( list.Count==0)
-                return null;
-            if( list.Count>1 && (failIfMultiple || !list[0].AllowsMultiple()))
-                throw new System.Exception("unexpected multiple chunks id=" + id);
-            return list[list.Count - 1];
+        public PngChunk GetQueuedById1 ( string id , string innerid , bool failIfMultiple )
+        {
+            List<PngChunk> list = GetQueuedById( id , innerid );
+            if( list.Count==0 ) return null;
+            if( list.Count>1 && (failIfMultiple || !list[0].AllowsMultiple()) ) throw new System.Exception($"unexpected multiple chunks id={id}" );
+            return list[list.Count-1];
         }
 
         /// <summary> Same as <c>getById1()</c>, but looking in the queued chunks </summary>
-        public PngChunk GetQueuedById1 ( string id , bool failIfMultiple ) => GetQueuedById1(id, null, failIfMultiple);
+        public PngChunk GetQueuedById1 ( string id , bool failIfMultiple ) => GetQueuedById1( id , null , failIfMultiple );
 
         /// <summary> Same as getById1(), but looking in the queued chunks </summary>
         public PngChunk GetQueuedById1 ( string id ) => GetQueuedById1( id , false );
@@ -52,7 +48,7 @@ namespace Pngcs.Chunks
         public bool RemoveChunk ( PngChunk chunk ) => queuedChunks.Remove(chunk);
 
         /// <summary> Adds chunk to queue </summary>
-        /// <remarks>Does not check for duplicated or anything</remarks>
+        /// <remarks> Does not check for duplicated or anything </remarks>
         public bool Queue ( PngChunk chunk )
         {
             queuedChunks.Add(chunk);
@@ -62,17 +58,17 @@ namespace Pngcs.Chunks
         /**
          * this should be called only for ancillary chunks and PLTE (groups 1 - 3 - 5)
          **/
-        static bool shouldWrite ( PngChunk chunk , int currentGroup )
+        static bool ShouldWrite ( PngChunk chunk , int currentGroup )
         {
             if( currentGroup==CHUNK_GROUP_2_PLTE ) return chunk.Id.Equals(ChunkHelper.PLTE);
             if( currentGroup%2==0 ) throw new System.IO.IOException("bad chunk group?");
             int minChunkGroup, maxChunkGroup;
-            if( chunk.mustGoBeforePLTE() )
+            if( chunk.MustGoBeforePLTE() )
                 minChunkGroup = maxChunkGroup = ChunksList.CHUNK_GROUP_1_AFTERIDHR;
-            else if( chunk.mustGoBeforeIDAT() )
+            else if( chunk.MustGoBeforeIDAT() )
             {
                 maxChunkGroup = ChunksList.CHUNK_GROUP_3_AFTERPLTE;
-                minChunkGroup = chunk.mustGoAfterPLTE()
+                minChunkGroup = chunk.MustGoAfterPLTE()
                     ? ChunksList.CHUNK_GROUP_3_AFTERPLTE
                     : ChunksList.CHUNK_GROUP_1_AFTERIDHR;
             }
@@ -83,9 +79,9 @@ namespace Pngcs.Chunks
             }
 
             int preferred = maxChunkGroup;
-            if( chunk.Priority)
+            if( chunk.Priority )
                 preferred = minChunkGroup;
-            if( ChunkHelper.IsUnknown(chunk) && chunk.ChunkGroup>0)
+            if( ChunkHelper.IsUnknown(chunk) && chunk.ChunkGroup>0 )
                 preferred = chunk.ChunkGroup;
             
             if( currentGroup==preferred ) return true;
@@ -93,19 +89,19 @@ namespace Pngcs.Chunks
             return false;
         }
 
-        internal int writeChunks ( IO.Stream os , int currentGroup )
+        internal int WriteChunks ( IO.Stream os , int currentGroup )
         {
             List<int> written = new List<int>();
             for( int i=0 ; i<queuedChunks.Count ; i++ )
             {
                 PngChunk chunk = queuedChunks[i];
 
-                if( !shouldWrite(chunk,currentGroup) ) continue;
+                if( !ShouldWrite(chunk,currentGroup) ) continue;
                 
                 if( ChunkHelper.IsCritical(chunk.Id) && !chunk.Id.Equals(ChunkHelper.PLTE) ) throw new System.IO.IOException($"bad chunk queued: {chunk}");
-                if( alreadyWrittenKeys.ContainsKey(chunk.Id) && !chunk.AllowsMultiple()) throw new System.IO.IOException($"duplicated chunk does not allow multiple: {chunk}");
+                if( alreadyWrittenKeys.ContainsKey(chunk.Id) && !chunk.AllowsMultiple() ) throw new System.IO.IOException($"duplicated chunk does not allow multiple: {chunk}");
                 
-                chunk.write(os);
+                chunk.Write(os);
                 chunks.Add(chunk);
                 alreadyWrittenKeys[chunk.Id] = alreadyWrittenKeys.ContainsKey(chunk.Id) ? alreadyWrittenKeys[chunk.Id] + 1 : 1;
                 written.Add(i);

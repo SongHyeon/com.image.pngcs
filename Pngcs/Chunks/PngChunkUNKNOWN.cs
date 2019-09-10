@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// Unknown (for our chunk factory) chunk type.
-    /// </summary>
+    /// <summary> Unknown (for our chunk factory) chunk type. </summary>
     public class PngChunkUNKNOWN : PngChunkMultiple
     {
 
@@ -25,7 +23,7 @@ namespace Pngcs.Chunks
 
         public override ChunkRaw CreateRawChunk ()
         {
-            ChunkRaw p = createEmptyChunk( data.Length , false );
+            ChunkRaw p = CreateEmptyChunk( data.Length , false );
             p.Data = this.data;
             return p;
         }

@@ -2,7 +2,6 @@ namespace Pngcs.Chunks
 {
     /// <summary>
     /// sBIT chunk: http://www.w3.org/TR/PNG/#11sBIT
-    /// 
     /// this chunk structure depends on the image type
     /// </summary>
     public class PngChunkSBIT : PngChunkSingle
@@ -50,7 +49,7 @@ namespace Pngcs.Chunks
         public override ChunkRaw CreateRawChunk ()
         {
             ChunkRaw chunk = null;
-            chunk = createEmptyChunk( GetLen() , true );
+            chunk = CreateEmptyChunk( GetLen() , true );
             byte[] data = chunk.Data;
             if( ImgInfo.Greyscale )
             {

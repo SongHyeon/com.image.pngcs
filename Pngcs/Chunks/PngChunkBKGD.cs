@@ -1,8 +1,8 @@
+using Exception = System.Exception;
+
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// bKGD chunk, see http://www.w3.org/TR/PNG/#11bKGD
-    /// </summary>
+    /// <summary> bKGD chunk, see http://www.w3.org/TR/PNG/#11bKGD </summary>
     public class PngChunkBKGD : PngChunkSingle
     {
 
@@ -28,17 +28,17 @@ namespace Pngcs.Chunks
             byte[] data = chunk.Data;
             if( ImgInfo.Greyscale )
             {
-                chunk = createEmptyChunk( 2 , true );
+                chunk = CreateEmptyChunk( 2 , true );
                 PngHelperInternal.WriteInt2tobytes( gray , data , 0 );
             }
             else if( ImgInfo.Indexed )
             {
-                chunk = createEmptyChunk( 1 , true );
+                chunk = CreateEmptyChunk( 1 , true );
                 data[0] = (byte)paletteIndex;
             }
             else
             {
-                chunk = createEmptyChunk( 6 , true );
+                chunk = CreateEmptyChunk( 6 , true );
                 PngHelperInternal.WriteInt2tobytes( red , data , 0 );
                 PngHelperInternal.WriteInt2tobytes( green , data , 0 );
                 PngHelperInternal.WriteInt2tobytes( blue , data , 0 );
@@ -78,7 +78,7 @@ namespace Pngcs.Chunks
         /// <summary> Set gray value (0-255 if bitdept=8) </summary>
         public void SetGray ( int gray )
         {
-            if( !ImgInfo.Greyscale ) throw new System.Exception("only gray images support this");
+            if( !ImgInfo.Greyscale ) throw new Exception("only gray images support this");
             this.gray = gray;
         }
 
@@ -86,38 +86,38 @@ namespace Pngcs.Chunks
         /// <returns>gray value  (0-255 if bitdept=8)</returns>
         public int GetGray ()
         {
-            if( !ImgInfo.Greyscale ) throw new System.Exception("only gray images support this");
+            if( !ImgInfo.Greyscale ) throw new Exception("only gray images support this");
             return gray;
         }
 
         /// <summary> Set pallette index - only for indexed </summary>
         public void SetPaletteIndex ( int index )
         {
-            if( !ImgInfo.Indexed ) throw new System.Exception("only indexed (pallete) images support this");
+            if( !ImgInfo.Indexed ) throw new Exception("only indexed (pallete) images support this");
             this.paletteIndex = index;
         }
 
         /// <summary> Get pallette index - only for indexed </summary>
         public int GetPaletteIndex ()
         {
-            if( !ImgInfo.Indexed ) throw new System.Exception("only indexed (pallete) images support this");
+            if( !ImgInfo.Indexed ) throw new Exception("only indexed (pallete) images support this");
             return paletteIndex;
         }
 
         /// <summary> Sets rgb value, only for rgb images </summary>
         public void SetRGB ( int r , int g , int b )
         {
-            if( ImgInfo.Greyscale || ImgInfo.Indexed ) throw new System.Exception("only rgb or rgba images support this");
+            if( ImgInfo.Greyscale || ImgInfo.Indexed ) throw new Exception("only rgb or rgba images support this");
             red = r;
             green = g;
             blue = b;
         }
 
         /// <summary> Gets rgb value, only for rgb images </summary>
-        /// <returns>[r , g, b] array</returns>
+        /// <returns> [r,g,b] array </returns>
         public int[] GetRGB ()
         {
-            if( ImgInfo.Greyscale || ImgInfo.Indexed ) throw new System.Exception("only rgb or rgba images support this");
+            if( ImgInfo.Greyscale || ImgInfo.Indexed ) throw new Exception("only rgb or rgba images support this");
             return new int[]{ red, green, blue };
         }
 

@@ -885,7 +885,7 @@ namespace Pngcs.Unity
             }
             else
             {
-                throw new System.Exception($"Unpacking int not implemented, bit depth {bitDepth} for {channels} channels");
+                throw new System.Exception($"Unpacking int not implemented for bit depth {bitDepth} & {channels} channels");
                 //TODO: 1 int will contain 16 indices I believe
             }
         }

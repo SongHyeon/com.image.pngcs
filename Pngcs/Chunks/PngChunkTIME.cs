@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// tIME chunk: http://www.w3.org/TR/PNG/#11tIME
-    /// </summary>
+    /// <summary> tIME chunk: http://www.w3.org/TR/PNG/#11tIME </summary>
     public class PngChunkTIME : PngChunkSingle
     {
 
@@ -20,7 +18,7 @@ namespace Pngcs.Chunks
 
         public override ChunkRaw CreateRawChunk ()
         {
-            ChunkRaw c = createEmptyChunk( 7 , true );
+            ChunkRaw c = CreateEmptyChunk( 7 , true );
             byte[] data = c.Data;
             PngHelperInternal.WriteInt2tobytes( year , data , 0 );
             data[2] = (byte)mon;

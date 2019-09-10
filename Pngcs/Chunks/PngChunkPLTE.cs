@@ -1,9 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// PLTE Palette chunk: this is the only optional critical chunk
-    /// http://www.w3.org/TR/PNG/#11PLTE
-    /// </summary>
+    /// <summary> PLTE Palette chunk: this is the only optional critical chunk http://www.w3.org/TR/PNG/#11PLTE </summary>
     public class PngChunkPLTE : PngChunkSingle
     {
 
@@ -27,7 +24,7 @@ namespace Pngcs.Chunks
         {
             int len = 3 * numEntries;
             int[] rgb = new int[3];
-            ChunkRaw c = createEmptyChunk( len , true );
+            ChunkRaw c = CreateEmptyChunk( len , true );
             byte[] data = c.Data;
             for( int n=0 , i=0 ; n<numEntries ; n++ )
             {
@@ -99,7 +96,7 @@ namespace Pngcs.Chunks
         }
 
         /// <summary> minimum allowed bit depth, given palette size </summary>
-        /// <returns>1-2-4-8</returns>
+        /// <returns> 1-2-4-8 </returns>
         public int MinBitDepth ()
         {
             if( numEntries<=2 ) return 1;

@@ -1,11 +1,10 @@
+using System.Collections.Generic;
+using IO = System.IO;
+
 namespace Pngcs.Chunks
 {   
-    /// <summary>
-    /// Static utility methods for CHunks
-    /// </summary>
-    /// <remarks>
-    /// Client code should rarely need this, see PngMetada and ChunksList
-    /// </remarks>
+    /// <summary> Static utility methods for CHunks </summary>
+    /// <remarks> Client code should rarely need this, see PngMetada and ChunksList </remarks>
     public class ChunkHelper
     {
         
@@ -52,7 +51,7 @@ namespace Pngcs.Chunks
         public static string ToStringUTF8 ( byte[] x , int offset , int len ) => PngHelperInternal.charsetUtf8.GetString( x , offset , len );
 
         /// <summary> Writes full array of bytes to stream </summary>
-        public static void WriteBytesToStream ( System.IO.Stream stream , byte[] bytes ) => stream.Write( bytes , 0 , bytes.Length );
+        public static void WriteBytesToStream ( IO.Stream stream , byte[] bytes ) => stream.Write( bytes , 0 , bytes.Length );
 
         /// <summary> Critical chunks: first letter is uppercase </summary>
         public static bool IsCritical ( string id ) => char.IsUpper(id[0]); // first letter is uppercase
@@ -77,45 +76,38 @@ namespace Pngcs.Chunks
         }
 
         /// <summary> Decides if a chunk should be loaded, according to a ChunkLoadBehaviour </summary>
-        public static bool ShouldLoad(string id, ChunkLoadBehaviour behav) {
-            if( IsCritical(id))
-                return true;
-            bool kwown = PngChunk.isKnown(id);
-            switch (behav) {
-                case ChunkLoadBehaviour.LOAD_CHUNK_ALWAYS:
-                    return true;
-                case ChunkLoadBehaviour.LOAD_CHUNK_IF_SAFE:
-                    return kwown || IsSafeToCopy(id);
-                case ChunkLoadBehaviour.LOAD_CHUNK_KNOWN:
-                    return kwown;
-                case ChunkLoadBehaviour.LOAD_CHUNK_NEVER:
-                    return false;
-            }
-            return false; // should not reach here
-        }
-
-        internal static byte[] compressBytes ( byte[] ori , bool compress ) => compressBytes( ori , 0 , ori.Length , compress );
-
-        internal static byte[] compressBytes ( byte[] ori , int offset , int len , bool compress )
+        public static bool ShouldLoad ( string id , ChunkLoadBehaviour behav )
         {
-            try
+            if( IsCritical(id) ) return true;
+            bool kwown = PngChunk.IsKnown(id);
+            switch( behav )
             {
-                var inb = new System.IO.MemoryStream( ori , offset , len );
-                System.IO.Stream inx = inb;
-                if( !compress ) inx = Zlib.ZlibStreamFactory.createZlibInputStream(inb);
-                var outb = new System.IO.MemoryStream();
-                System.IO.Stream outx = outb;
-                if( compress ) outx = Zlib.ZlibStreamFactory.createZlibOutputStream(outb);
-                shovelInToOut( inx , outx );
-                inx.Close();
-                outx.Close();
-                byte[] res = outb.ToArray();
-                return res;
+                case ChunkLoadBehaviour.LOAD_CHUNK_ALWAYS:      return true;
+                case ChunkLoadBehaviour.LOAD_CHUNK_IF_SAFE:     return kwown || IsSafeToCopy(id);
+                case ChunkLoadBehaviour.LOAD_CHUNK_KNOWN:       return kwown;
+                case ChunkLoadBehaviour.LOAD_CHUNK_NEVER:       return false;
+                default:                                        return false; // should not reach here
             }
-            catch( System.Exception e ) { throw e; }
         }
 
-        static void shovelInToOut ( System.IO.Stream inx , System.IO.Stream outx )
+        internal static byte[] CompressBytes ( byte[] ori , bool compress ) => CompressBytes( ori , 0 , ori.Length , compress );
+
+        internal static byte[] CompressBytes ( byte[] ori , int offset , int len , bool compress )
+        {
+            var inb = new IO.MemoryStream( ori , offset , len );
+            IO.Stream inx = inb;
+            if( !compress ) inx = Zlib.ZlibStreamFactory.createZlibInputStream( inb );
+            var outb = new IO.MemoryStream();
+            IO.Stream outx = outb;
+            if( compress ) outx = Zlib.ZlibStreamFactory.createZlibOutputStream( outb );
+            ShovelInToOut( inx , outx );
+            inx.Close();
+            outx.Close();
+            byte[] res = outb.ToArray();
+            return res;
+        }
+
+        static void ShovelInToOut ( IO.Stream inx , IO.Stream outx )
         {
             byte[] buffer = new byte[1024];
             int len;
@@ -123,13 +115,13 @@ namespace Pngcs.Chunks
                 outx.Write( buffer , 0 , len );
         }
 
-        internal static bool maskMatch ( int v , int mask ) => (v&mask)!=0;
+        internal static bool MaskMatch ( int v , int mask ) => (v&mask)!=0;
 
         /// <summary> Filters a list of Chunks, keeping those which match the predicate </summary>
         /// <remarks>The original list is not altered</remarks>
-        public static System.Collections.Generic.List<PngChunk> FilterList ( System.Collections.Generic.List<PngChunk> list , ChunkPredicate predicateKeep )
+        public static List<PngChunk> FilterList ( List<PngChunk> list , ChunkPredicate predicateKeep )
         {
-            var result = new System.Collections.Generic.List<PngChunk>();
+            var result = new List<PngChunk>();
             foreach( PngChunk element in list )
             {
                 if( predicateKeep.Matches(element) )
@@ -139,8 +131,8 @@ namespace Pngcs.Chunks
         }
 
         /// <summary> Filters a list of Chunks, removing those which match the predicate </summary>
-        /// <remarks>The original list is not altered</remarks>
-        public static int TrimList ( System.Collections.Generic.List<PngChunk> list , ChunkPredicate predicateRemove )
+        /// <remarks> The original list is not altered </remarks>
+        public static int TrimList ( List<PngChunk> list , ChunkPredicate predicateRemove )
         {
             int cont = 0;
             for( int i=list.Count-1 ; i>=0 ; i-- )
@@ -154,9 +146,7 @@ namespace Pngcs.Chunks
             return cont;
         }
 
-        /// <summary>
-        /// Ad-hoc criteria for 'equivalent' chunks.
-        /// </summary>
+        /// <summary> Ad-hoc criteria for 'equivalent' chunks. </summary>
         /// <remarks>
         /// Two chunks are equivalent if they have the same Id AND either:
         /// 1. they are Single
@@ -165,10 +155,8 @@ namespace Pngcs.Chunks
         /// Bear in mind that this is an ad-hoc, non-standard, nor required (nor wrong)
         /// criterion. Use it only if you find it useful. Notice that PNG allows to have
         /// repeated textual keys with same keys.
-        /// </remarks>        
-        /// <param name="c1">Chunk1</param>
-        /// <param name="c2">Chunk1</param>
-        /// <returns>true if equivalent</returns>
+        /// </remarks>
+        /// <returns> True if equivalent</returns>
         public static bool Equivalent ( PngChunk c1 , PngChunk c2 )
         {
             if( c1==c2 ) return true;

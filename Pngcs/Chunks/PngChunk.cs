@@ -95,11 +95,11 @@ namespace Pngcs.Chunks
         /// <param name="type">should extend PngChunkSingle or PngChunkMultiple</param>
         public static void FactoryRegister ( string chunkId , System.Type type ) => factoryMap.Add( chunkId , type );
 
-        internal static bool isKnown ( string id ) => factoryMap.ContainsKey(id);
+        internal static bool IsKnown ( string id ) => factoryMap.ContainsKey(id);
 
-        internal bool mustGoBeforePLTE () => GetOrderingConstraint()==ChunkOrderingConstraint.BEFORE_PLTE_AND_IDAT;
+        internal bool MustGoBeforePLTE () => GetOrderingConstraint()==ChunkOrderingConstraint.BEFORE_PLTE_AND_IDAT;
 
-        internal bool mustGoBeforeIDAT ()
+        internal bool MustGoBeforeIDAT ()
         {
             ChunkOrderingConstraint oc = GetOrderingConstraint();
             return oc==ChunkOrderingConstraint.BEFORE_IDAT
@@ -107,7 +107,7 @@ namespace Pngcs.Chunks
                 || oc==ChunkOrderingConstraint.AFTER_PLTE_BEFORE_IDAT;
         }
 
-        internal bool mustGoAfterPLTE() => GetOrderingConstraint()==ChunkOrderingConstraint.AFTER_PLTE_BEFORE_IDAT;
+        internal bool MustGoAfterPLTE () => GetOrderingConstraint()==ChunkOrderingConstraint.AFTER_PLTE_BEFORE_IDAT;
 
         internal static PngChunk Factory ( ChunkRaw chunk , ImageInfo info )
         {
@@ -122,7 +122,7 @@ namespace Pngcs.Chunks
         internal static PngChunk FactoryFromId ( string cid , ImageInfo info )
         {
             PngChunk chunk = null;
-            if( isKnown(cid) )
+            if( IsKnown(cid) )
             {
                 System.Type t = factoryMap[cid];
                 if( t==null ) UnityEngine.Debug.Log($"What?? {cid}");
@@ -138,7 +138,7 @@ namespace Pngcs.Chunks
             return chunk;
         }
 
-        public ChunkRaw createEmptyChunk ( int len , bool alloc )
+        public ChunkRaw CreateEmptyChunk ( int len , bool alloc )
         {
             ChunkRaw chunk = new ChunkRaw( len , ChunkHelper.ToBytes(Id) , alloc );
             return chunk;
@@ -153,7 +153,7 @@ namespace Pngcs.Chunks
             return (T)cn;
         }
 
-        internal void write ( IO.Stream os )
+        internal void Write ( IO.Stream os )
         {
             ChunkRaw chunk = CreateRawChunk();
             if( chunk==null ) throw new System.Exception( $"null chunk ! creation failed for {this}");

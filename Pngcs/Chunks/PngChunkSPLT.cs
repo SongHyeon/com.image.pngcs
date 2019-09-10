@@ -2,9 +2,7 @@ using IO = System.IO;
 
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// sPLT chunk: http://www.w3.org/TR/PNG/#11sPLT
-    /// </summary>
+    /// <summary> sPLT chunk: http://www.w3.org/TR/PNG/#11sPLT </summary>
     public class PngChunkSPLT : PngChunkMultiple
     {
 
@@ -51,7 +49,7 @@ namespace Pngcs.Chunks
                 PngHelperInternal.WriteInt2( ba , Palette[n*5+4] );
             }
             byte[] b = ba.ToArray();
-            ChunkRaw chunk = createEmptyChunk( b.Length , false );
+            ChunkRaw chunk = CreateEmptyChunk( b.Length , false );
             chunk.Data = b;
             return chunk;
         }

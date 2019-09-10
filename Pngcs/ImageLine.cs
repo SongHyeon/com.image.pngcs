@@ -1,11 +1,7 @@
 namespace Pngcs
 {
-    /// <summary>
-    /// Lightweight wrapper for an image scanline, for read and write
-    /// </summary>
-    /// <remarks>It can be (usually it is) reused while iterating over the image lines
-    /// See <c>scanline</c> field doc, to understand the format.
-    ///</remarks>
+    /// <summary> Lightweight wrapper for an image scanline, for read and write </summary>
+    /// <remarks> It can be (usually it is) reused while iterating over the image lines. See <c>scanline</c> field doc, to understand the format. </remarks>
     public class ImageLine
     {
         
@@ -134,7 +130,7 @@ namespace Pngcs
             }
         }
 
-        static internal void packInplaceInt ( ImageInfo iminfo , int[] src , int[] dst , bool scaled )
+        static internal void PackInplaceInt ( ImageInfo iminfo , int[] src , int[] dst , bool scaled )
         {
             int bitDepth = iminfo.BitDepth;
             if( bitDepth>=8 ) { return; }// nothing to do
@@ -198,7 +194,7 @@ namespace Pngcs
         }
 
         /** size original: samplesPerRow sizeFinal: samplesPerRowPacked (trailing elements are trash!) **/
-        static internal void packInplaceByte ( ImageInfo iminfo , byte[] src , byte[] dst , bool scaled )
+        static internal void PackInplaceByte ( ImageInfo iminfo , byte[] src , byte[] dst , bool scaled )
         {
             int bitDepth = iminfo.BitDepth;
             if( bitDepth>=8 ) return;// nothing to do
@@ -258,8 +254,8 @@ namespace Pngcs
         public ImageLine PackToNewImageLine ()
         {
             ImageLine newline = new ImageLine( ImgInfo , SampleType , false , null , null , this.ImageRow );
-            if( SampleType==ESampleType.INT ) packInplaceInt( ImgInfo , Scanline , newline.Scanline , false );
-            else packInplaceByte( ImgInfo , ScanlineB , newline.ScanlineB , false );
+            if( SampleType==ESampleType.INT ) PackInplaceInt( ImgInfo , Scanline , newline.Scanline , false );
+            else PackInplaceByte( ImgInfo , ScanlineB , newline.ScanlineB , false );
             return newline;
         }
 

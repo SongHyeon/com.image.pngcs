@@ -5,7 +5,10 @@ namespace Pngcs
     class BufferedStreamFeeder
     {
         
+        /// <summary> Stream from which bytes are read </summary>
+        public IO.Stream Stream => _stream;
         IO.Stream _stream;
+
         byte[] buf;
         int pendinglen; // bytes read and stored in buf that have not yet still been fed to IBytesConsumer
         int offset;
@@ -25,22 +28,15 @@ namespace Pngcs
 	    	this._stream = ist;
 	    	buf = new byte[ bufsize ];
 	    }
-
-
-        /// <summary> Stream from which bytes are read </summary>
-        public IO.Stream getStream () => _stream;
         
-        /// <summary>
-        /// Feeds bytes to the consumer 
-        ///  Returns bytes actually consumed
-        ///  This should return 0 only if the stream is EOF or the consumer is done
-        /// </summary>
-        public int feed ( IBytesConsumer consumer ) => feed( consumer , -1 );
+        /// <summary> Feeds bytes to the consumer </summary>
+        /// <returns> Bytes actually consumed. Should return 0 only if the stream is EOF or the consumer is done </returns>
+        public int Feed ( IBytesConsumer consumer ) => Feed( consumer , -1 );
 
-        public int feed ( IBytesConsumer consumer , int maxbytes )
+        public int Feed ( IBytesConsumer consumer , int maxbytes )
         {
             int n = 0;
-            if( pendinglen==0 ) refillBuffer();
+            if( pendinglen==0 ) RefillBuffer();
             int tofeed = maxbytes>0 && maxbytes<pendinglen ? maxbytes : pendinglen;
             if( tofeed>0 )
             {
@@ -55,67 +51,58 @@ namespace Pngcs
             return n;
         }
 
-        public bool feedFixed ( IBytesConsumer consumer , int nbytes )
+        public bool FeedFixed ( IBytesConsumer consumer , int nbytes )
         {
             int remain = nbytes;
             while( remain>0 )
             {
-                int n = feed( consumer , remain );
+                int n = Feed( consumer , remain );
                 if( n<1 ) return false;
                 remain -= n;
             }
             return true;
         }
 
-        protected void refillBuffer ()
+        protected void RefillBuffer ()
         {
             if( pendinglen>0 || eof ) return; // only if not pending data
-            try
+            // try to read
+            offset = 0;
+            pendinglen = _stream.Read( buf , 0 , buf.Length );
+            if( pendinglen<0 )
             {
-                // try to read
-                offset = 0;
-                pendinglen = _stream.Read( buf , 0 , buf.Length );
-                if( pendinglen<0 )
-                {
-                    close();
-                }
+                Close();
             }
-            catch( IO.IOException e ) { throw e; }
         }
 
-        public bool hasMoreToFeed ()
+        public bool HasMoreToFeed ()
         {
             if( eof ) return pendinglen>0;
-            else refillBuffer();
+            else RefillBuffer();
             return pendinglen>0;
         }
 
-        public void setCloseStream ( bool closeStream ) => this.closeStream = closeStream;
+        public void SetCloseStream ( bool closeStream ) => this.closeStream = closeStream;
 
-        public void close ()
+        public void Close ()
         {
             eof = true;
             buf = null;
             pendinglen = 0;
             offset = 0;
-            try
-            {
-                if( _stream!=null && closeStream )
-                    _stream.Close();
-            }
-            catch( System.Exception e ) { UnityEngine.Debug.LogException(e); }
+            if( _stream!=null && closeStream ) _stream.Close();
             _stream = null;
         }
 
-       	public void setInputStream ( IO.Stream ist )// to reuse this object
+       	public void SetInputStream ( IO.Stream stream )// to reuse this object
         {
-		    this._stream = ist;
+		    this._stream = stream;
 		    eof = false;
 	    }
 
-        public bool isEof () => eof;
+        public bool IsEof () => eof;
 
-        public void setFailIfNoFeed ( bool failIfNoFeed ) => this.failIfNoFeed = failIfNoFeed;
+        public void SetFailIfNoFeed ( bool failIfNoFeed ) => this.failIfNoFeed = failIfNoFeed;
 
     }
 }

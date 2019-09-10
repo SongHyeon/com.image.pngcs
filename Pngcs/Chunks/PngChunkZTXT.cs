@@ -1,8 +1,6 @@
 namespace Pngcs.Chunks
 {
-    /// <summary>
-    /// zTXt chunk: http://www.w3.org/TR/PNG/#11zTXt
-    /// </summary>
+    /// <summary> zTXt chunk: http://www.w3.org/TR/PNG/#11zTXt </summary>
     public class PngChunkZTXT : PngChunkTextVar
     {
         
@@ -16,16 +14,15 @@ namespace Pngcs.Chunks
 
         public override ChunkRaw CreateRawChunk ()
         {
-            if( key.Length==0 )
-                throw new System.Exception("Text chunk key must be non empty");
+            if( key.Length==0 ) throw new System.Exception("Text chunk key must be non empty");
             var ba = new System.IO.MemoryStream();
             ChunkHelper.WriteBytesToStream( ba , ChunkHelper.ToBytes(key) );
             ba.WriteByte(0); // separator
             ba.WriteByte(0); // compression method: 0
-            byte[] textbytes = ChunkHelper.compressBytes( ChunkHelper.ToBytes(val) , true );
+            byte[] textbytes = ChunkHelper.CompressBytes( ChunkHelper.ToBytes(val) , true );
             ChunkHelper.WriteBytesToStream( ba , textbytes );
             byte[] b = ba.ToArray();
-            ChunkRaw chunk = createEmptyChunk( b.Length , false );
+            ChunkRaw chunk = CreateEmptyChunk( b.Length , false );
             chunk.Data = b;
             return chunk;
         }
@@ -41,13 +38,11 @@ namespace Pngcs.Chunks
                 nullsep = i;
                 break;
             }
-            if( nullsep<0 || nullsep>length-2 )
-                throw new System.Exception("bad zTXt chunk: no separator found");
+            if( nullsep<0 || nullsep>length-2 ) throw new System.Exception("bad zTXt chunk: no separator found");
             key = ChunkHelper.ToString( array , 0 , nullsep );
             int compmet = (int)array[nullsep+1];
-            if( compmet!=0 )
-                throw new System.Exception("bad zTXt chunk: unknown compression method");
-            byte[] uncomp = ChunkHelper.compressBytes( array , nullsep+2 , length-nullsep-2 , false ); // uncompress
+            if( compmet!=0 ) throw new System.Exception("bad zTXt chunk: unknown compression method");
+            byte[] uncomp = ChunkHelper.CompressBytes( array , nullsep+2 , length-nullsep-2 , false ); // uncompress
             val = ChunkHelper.ToString(uncomp);
         }
 
