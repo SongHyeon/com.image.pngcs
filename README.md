@@ -47,5 +47,5 @@ REQUIREMENTS:
 - Scripting runtime version: C# 4.x
 #
 
-![Pngcs test window](https://i.imgur.com/K2uenLC.jpg)
+![Pngcs test window](https://i.imgur.com/205JHgu.jpg)
 (Test window available under Test>Pngcs Load)
