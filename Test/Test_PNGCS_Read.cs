@@ -23,11 +23,12 @@ namespace PNGCS.Test
         void CreateUI ()
         {
             if( PATH==null ) return;
+            string[] filePaths = IO.Directory.GetFiles( PATH , "*.png" );
 
             VisualElement ROOT = rootVisualElement;
             ScrollView SCROLL;
             {
-                ROOT.Add( new Label($"File path: {PATH}") );
+                ROOT.Add( new Label($"File path: {PATH} ({filePaths.Length} pngs found)") );
             
                 Button BUTTON = new Button( () => {
                     ROOT.Clear();
@@ -46,49 +47,51 @@ namespace PNGCS.Test
             var watch = new System.Diagnostics.Stopwatch();
             VisualElement ROW = null;
             int image_count = 0;
-            foreach( string path in IO.Directory.GetFiles(PATH) )
+            foreach( string path in filePaths )
             {
-                if( path.EndsWith(".png") )
+                Debug.Log( $"Reading file: {path}\n" );
+
+                if( image_count++%5==0 )
                 {
-                    Debug.Log( $"Reading file: {path}\n" );
-
-                    if( image_count++%5==0 )
-                    {
-                        ROW = new VisualElement();
-                        ROW.style.flexDirection = FlexDirection.Row;
-                        SCROLL.Add( ROW );
-                    }
-
-                    var IMG = new Image();
-                    {
-                        //read file:
-                        watch.Restart();
-                        Texture2D texture = PNG.Read( path );
-                        watch.Stop();
-                        _loaded.Add( texture );
-
-                        //assing texture:
-                        IMG.image = texture;
-                        
-                        //set style:
-                        IMG.style.width = 300;
-                        IMG.style.height = 300;
-                        IMG.scaleMode = ScaleMode.ScaleToFit;
-
-                        //label it:
-                        var imageInfo = PNG.ReadImageInfo( path );
-                        var LABEL = new Label( $"{IO.Path.GetFileName(path)}\npixels: {imageInfo.Cols}/{imageInfo.Rows}\nread time: {watch.ElapsedMilliseconds} ms\nin: {imageInfo.BitDepth}bit x {imageInfo.Channels}channels{(imageInfo.Indexed?", indexed":"")}{(imageInfo.Alpha?", alpha":"")}\nout: {texture.format} ({texture.graphicsFormat})" );
-                        var labelStyle = LABEL.style;
-                        labelStyle.color = Color.white;
-                        labelStyle.backgroundColor = new Color{ a=0.2f };
-                        labelStyle.marginTop = 2;
-                        labelStyle.marginLeft = 2;
-                        labelStyle.marginRight = 2;
-                        IMG.Add( LABEL );
-                    }
-
-                    ROW.Add( IMG );
+                    ROW = new VisualElement();
+                    ROW.style.flexDirection = FlexDirection.Row;
+                    SCROLL.Add( ROW );
                 }
+
+                var IMG = new Image();
+                {
+                    //read file:
+                    watch.Restart();
+                    Texture2D texture = PNG.Read( path );
+                    watch.Stop();
+                    _loaded.Add( texture );
+
+                    //assing texture:
+                    IMG.image = texture;
+                    
+                    //set style:
+                    IMG.style.width = 300;
+                    IMG.style.height = 300;
+                    IMG.scaleMode = ScaleMode.ScaleToFit;
+
+                    //label it:
+                    var info = PNG.ReadImageInfo( path );
+                    if( info==null )
+                    {
+                        Debug.LogError($"Unrecognized png file: {path}\n");
+                        continue;
+                    }
+                    var LABEL = new Label( $"{IO.Path.GetFileName(path)}\npixels: {info.Cols}/{info.Rows}\nread time: {watch.ElapsedMilliseconds} ms\nin: {info.BitDepth}bit x {info.Channels}channels{(info.Indexed?", indexed":"")}{(info.Alpha?", alpha":"")}\nout: {texture.format} ({texture.graphicsFormat})" );
+                    var labelStyle = LABEL.style;
+                    labelStyle.color = Color.white;
+                    labelStyle.backgroundColor = new Color{ a=0.2f };
+                    labelStyle.marginTop = 2;
+                    labelStyle.marginLeft = 2;
+                    labelStyle.marginRight = 2;
+                    IMG.Add( LABEL );
+                }
+
+                ROW.Add( IMG );
             }
         }
 

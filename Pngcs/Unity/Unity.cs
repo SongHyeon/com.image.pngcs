@@ -594,7 +594,7 @@ namespace Pngcs.Unity
                     }
                     else if( bitDepth==2 )
                     {
-                        throw new System.Exception($"bit depth {bitDepth} for {channels} channels not implemented");
+                        throw new System.Exception($"bit depth {bitDepth} for {channels} channels not implemented\n");
                     }
                     else if( bitDepth==1 )
                     {
@@ -606,7 +606,7 @@ namespace Pngcs.Unity
                     }
                     else
                     {
-                        throw new System.Exception($"bit depth {bitDepth} for {channels} channels not implemented");
+                        throw new System.Exception($"bit depth {bitDepth} for {channels} channels not implemented\n");
                     }
                 }
             }
@@ -643,7 +643,7 @@ namespace Pngcs.Unity
                 }
                 else
                 {
-                    throw new System.Exception($"bit depth {bitDepth} for {channels} channels not implemented");
+                    throw new System.Exception($"bit depth {bitDepth} for {channels} channels not implemented\n");
                 }
             }
         }
@@ -885,7 +885,7 @@ namespace Pngcs.Unity
             }
             else
             {
-                throw new System.Exception($"Unpacking int not implemented for bit depth {bitDepth} & {channels} channels");
+                throw new System.Exception($"Unpacking int not implemented for bit depth {bitDepth} & {channels} channels\n");
                 //TODO: 1 int will contain 16 indices I believe
             }
         }
@@ -894,8 +894,8 @@ namespace Pngcs.Unity
         public static int IndexPngToTexture ( int row , int col , int numRows , int numCols )
         {
             #if DEBUG
-            if( row>=numRows ) throw new System.ArgumentOutOfRangeException( $"({row}) row>=numRows ({numRows})" );
-            if( col>=numCols ) throw new System.ArgumentOutOfRangeException( $"({col}) col>=numCols ({numCols})" );
+            if( row>=numRows ) throw new System.ArgumentOutOfRangeException( $"({row}) row>=numRows ({numRows})\n" );
+            if( col>=numCols ) throw new System.ArgumentOutOfRangeException( $"({col}) col>=numCols ({numCols})\n" );
             #endif
 
             return numCols * ( numRows - 1 - row ) + col;
@@ -918,7 +918,7 @@ namespace Pngcs.Unity
                 case TextureFormat.RGBA32: return 8;
                 case TextureFormat.RGBAHalf: return 16;
                 case TextureFormat.RGBAFloat: return 32;
-                default: throw new System.NotImplementedException($"format '{format}' not implemented");
+                default: throw new System.NotImplementedException($"format '{format}' not implemented\n");
             }
         }
 
@@ -971,7 +971,7 @@ namespace Pngcs.Unity
                 case 1021: return TextureFormat.RGB24;
                 case 1041: return TextureFormat.RGB24;
                 case 1081: return TextureFormat.RGB24;
-                default: throw new System.NotImplementedException($"bit depth '{bitDepth}' for '{channels}' channels not implemented");
+                default: throw new System.NotImplementedException($"bit depth '{bitDepth}' for '{channels}' channels not implemented\n");
             }
         }
 
@@ -1012,7 +1012,7 @@ namespace Pngcs.Unity
                 case 8: return byte.MaxValue;
                 case 16: return ushort.MaxValue;
                 case 32: return uint.MaxValue;
-                default: throw new System.Exception( $"bitDepth '{ bitDepth }' not implemented" );
+                default: throw new System.Exception( $"bitDepth '{ bitDepth }' not implemented\n" );
             }
         }
 
