@@ -191,7 +191,7 @@ namespace Pngcs.Unity
             int channels = imageInfo.Channels;
             for( int row=0 ; row<numRows ; row++ )
             {
-                int[] ints = new int[ numCols ];
+                int[] ints = new int[ imageInfo.SamplesPerRow ];
 
                 //fill line:
                 if( greyscale==false )
