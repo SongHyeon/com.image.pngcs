@@ -116,7 +116,7 @@ namespace Pngcs.Unity
                 for( int row=0 ; row<numRows ; row++ )
                 {
                     //fill line on main or different thread:
-                    int[] samples = new int[ numCols ];
+                    int[] samples = new int[ imageInfo.SamplesPerRow ];
                     await fillLine( texture , samples , imageInfo , row );
                     
                     //write line on another thread:
@@ -333,7 +333,7 @@ namespace Pngcs.Unity
                     for( int row=0 ; row<numRows ; row++ )
                     {
                         //fill line:
-                        int[] ints = new int[ numCols ];
+                        int[] ints = new int[ imageInfo.SamplesPerRow ];
                         if( alpha==false )
                         {
                             for( int col=0 ; col<numCols ; col++ )
