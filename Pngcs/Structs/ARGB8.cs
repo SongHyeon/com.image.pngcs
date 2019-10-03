@@ -12,39 +12,39 @@ namespace Pngcs
 	public static class ARGB8
 	{
 		public static RGB<byte> ToRGB ( ARGB8<int> value )
-        {
-            return new RGB<byte>{
-                R = (byte)((value>>16) & 0xFF) ,
-                G = (byte)((value>>8) & 0xFF) ,
-                B = (byte)(value & 0xFF)
-            };
-        }
+		{
+			return new RGB<byte>{
+				R = (byte)((value>>16) & 0xFF) ,
+				G = (byte)((value>>8) & 0xFF) ,
+				B = (byte)(value & 0xFF)
+			};
+		}
 		public static RGB<int> ToRGB ( int value )
-        {
-            return new RGB<int>{
-                R = ((value>>16) & 0xFF) ,
-                G = ((value>>8) & 0xFF) ,
-                B = (value & 0xFF)
-            };
-        }
-        public static RGBA<byte> ToRGBA ( ARGB8<int> value )
-        {
-            return new RGBA<byte>{
-                R = (byte)((value>>16) & 0xFF) ,
-                G = (byte)((value>>8) & 0xFF) ,
-                B = (byte)(value & 0xFF) ,
-                A = (byte)((value>>24) & 0xFF)
-            };
-        }
+		{
+			return new RGB<int>{
+				R = ((value>>16) & 0xFF) ,
+				G = ((value>>8) & 0xFF) ,
+				B = (value & 0xFF)
+			};
+		}
+		public static RGBA<byte> ToRGBA ( ARGB8<int> value )
+		{
+			return new RGBA<byte>{
+				R = (byte)((value>>16) & 0xFF) ,
+				G = (byte)((value>>8) & 0xFF) ,
+				B = (byte)(value & 0xFF) ,
+				A = (byte)((value>>24) & 0xFF)
+			};
+		}
 		public static RGBA<int> ToRGBA ( int value )
-        {
-            return new RGBA<int>{
-                R = ((value>>16) & 0xFF) ,
-                G = ((value>>8) & 0xFF) ,
-                B = (value & 0xFF) ,
-                A = ((value>>24) & 0xFF)
-            };
-        }
+		{
+			return new RGBA<int>{
+				R = ((value>>16) & 0xFF) ,
+				G = ((value>>8) & 0xFF) ,
+				B = (value & 0xFF) ,
+				A = ((value>>24) & 0xFF)
+			};
+		}
 	}
 
 }

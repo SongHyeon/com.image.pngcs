@@ -1,7 +1,7 @@
 ﻿namespace Pngcs
 {
-    enum EChunkReaderMode
-    {
-        BUFFER , PROCESS , SKIP
-    }
+	enum EChunkReaderMode
+	{
+		BUFFER , PROCESS , SKIP
+	}
 }
