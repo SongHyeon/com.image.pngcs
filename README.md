@@ -48,4 +48,6 @@ REQUIREMENTS:
 #
 
 ![Pngcs test window](https://i.imgur.com/205JHgu.jpg)
+Note: Alpha8 images appear inverted here but aren't - it's due to no color info but black fill and transparency.
+
 (Test window available under Test>Pngcs Load)
