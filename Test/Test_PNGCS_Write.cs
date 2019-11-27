@@ -58,13 +58,10 @@ namespace PNGCS.Test
 			var GROUP1 = new VisualElement();
 			{
 				var group1Style = GROUP1.style;
-				group1Style.borderColor = Color.black;
+				group1Style.borderTopColor = group1Style.borderLeftColor = group1Style.borderRightColor = group1Style.borderBottomColor = Color.black;
 				group1Style.backgroundColor = Color.gray;
-				group1Style.borderColor = Color.black;
-				group1Style.marginBottom = 8;
-				group1Style.marginLeft = 4;
-				group1Style.marginRight = 4;
-				group1Style.marginTop = 8;
+				group1Style.marginBottom = group1Style.marginTop = 8;
+				group1Style.marginLeft = group1Style.marginRight = 4;
 			}
 			{
 				string outputDir = IO.Path.GetDirectoryName(filePath);
