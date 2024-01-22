@@ -1,0 +1,6 @@
+{
+    "description": "Complete PNG encoding and decoding for Unity engine",
+    "displayName": "Pngcs",
+    "name" : "com.image.pngcs",
+    "version" : "0.1.0"
+}
