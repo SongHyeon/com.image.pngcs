@@ -1,0 +1,869 @@
+// This file is generated. Do not modify by hand.
+// XML documentation file not found. To check if public methods have XML comments,
+// make sure the XML doc file is present and located next to the scraped dll
+namespace Pngcs
+{
+    public static class ARGB8
+    {
+        public static Pngcs.RGB<byte> ToRGB(Pngcs.ARGB8<int> value);
+        public static Pngcs.RGB<int> ToRGB(int value);
+        public static Pngcs.RGBA<byte> ToRGBA(Pngcs.ARGB8<int> value);
+        public static Pngcs.RGBA<int> ToRGBA(int value);
+    }
+
+    public struct ARGB8<T> where T : struct, unmanaged, new()
+    {
+        public T value;
+        public static Pngcs.ARGB8<T> op_Implicit(T t);
+        public static T op_Implicit(Pngcs.ARGB8<T> argb8);
+    }
+
+    public class FileHelper
+    {
+        public FileHelper() {}
+        public static PngReader CreatePngReader(string fileName);
+        public static PngWriter CreatePngWriter(string fileName, ImageInfo imgInfo, bool allowOverwrite);
+        public static System.IO.Stream OpenFileForReading(string file);
+        public static System.IO.Stream OpenFileForWriting(string file, bool allowOverwrite);
+    }
+
+    public enum FilterType
+    {
+        FILTER_AGGRESSIVE = -2,
+        FILTER_AVERAGE = 3,
+        FILTER_CYCLIC = -50,
+        FILTER_DEFAULT = -1,
+        FILTER_NONE = 0,
+        FILTER_PAETH = 4,
+        FILTER_SUB = 1,
+        FILTER_UNKNOWN = -100,
+        FILTER_UP = 2,
+        FILTER_VERYAGGRESSIVE = -3,
+    }
+
+    public class ImageInfo
+    {
+        public readonly bool Alpha;
+        public readonly int BitDepth;
+        public readonly int BitspPixel;
+        public readonly int BytesPerRow;
+        public readonly int BytesPixel;
+        public readonly int Channels;
+        public readonly int Cols;
+        public readonly bool Greyscale;
+        public readonly bool Indexed;
+        public readonly bool Packed;
+        public readonly int Rows;
+        public readonly int SamplesPerRow;
+        public readonly int SamplesPerRowPacked;
+        public ImageInfo(int cols, int rows, int bitdepth, bool alpha) {}
+        public ImageInfo(int cols, int rows, int bitdepth, bool alpha, bool grayscale, bool palette) {}
+        public override bool Equals(object obj);
+        public override int GetHashCode();
+        public override string ToString();
+    }
+
+    public class ImageLine
+    {
+        public int ElementsPerRow { get; }
+        public FilterType FilterUsed { get; set; }
+        public int ImageRow { get; }
+        public ImageInfo ImgInfo { get; }
+        public int MaxSampleVal { get; }
+        public bool SamplesUnpacked { get; }
+        public ImageLine.ESampleType SampleType { get; }
+        public int[] Scanline { get; }
+        public byte[] ScanlineB { get; }
+        public ImageLine(ImageInfo imgInfo, ImageLine.ESampleType sampleType, bool unpackedMode, int[] scanLineInt, byte[] scanLineBytes, int imageRow) {}
+        public byte[] GetScanlineByte();
+        public int[] GetScanlineInt();
+        public bool IsByte();
+        public bool IsInt();
+        public ImageLine PackToNewImageLine();
+        public override string ToString();
+        public ImageLine UnpackToNewImageLine();
+        public enum ESampleType
+        {
+            BYTE = 1,
+            INT = 0,
+        }
+    }
+
+    public class ImageLineHelper
+    {
+        public ImageLineHelper() {}
+        public static double ClampDouble(double i);
+        public static int ClampTo_0_255(int i);
+        public static int ClampTo_0_65535(int i);
+        public static int ClampTo_128_127(int x);
+        public static void FromARGB8(Pngcs.ARGB8<int> value, byte[] buff, int offset, bool alpha);
+        public static void FromARGB8(Pngcs.ARGB8<int> value, int[] buff, int offset, bool alpha);
+        public static Pngcs.ARGB8<int> GetPixelToARGB8(ImageLine line, int column);
+        public static int Interpol(int a, int b, int c, int d, double dx, double dy);
+        public static byte[] Pack(ImageInfo imgInfo, byte[] src, byte[] dst, bool scale);
+        public static int[] Pack(ImageInfo imgInfo, int[] src, int[] dst, bool scale);
+        public static int[] Palette2rgb(ImageLine line, Chunks.PngChunkPLTE pal, int[] buf);
+        public static int[] Palette2rgb(ImageLine line, Chunks.PngChunkPLTE pal, Chunks.PngChunkTRNS trns, int[] buffer);
+        public static double ReadDouble(ImageLine line, int pos);
+        public static void SetPixel(ImageLine line, int column, int value);
+        public static void SetPixel(byte[] data, Pngcs.RGB<byte> rgb, int column, int channels);
+        public static void SetPixel(byte[] data, Pngcs.RGBA<byte> rgba, int column, int channels);
+        public static void SetPixel(byte[] data, byte value, int column, int channels);
+        public static void SetPixel(int[] data, Pngcs.RGB<int> rgb, int column, int channels);
+        public static void SetPixel(int[] data, Pngcs.RGBA<int> rgba, int column, int channels);
+        public static void SetPixel(int[] data, int value, int column, int channels);
+        public static void SetPixel(ImageLine line, int col, int r, int g, int b);
+        public static void SetPixel(ImageLine line, int column, int r, int g, int b, int a);
+        public static void SetPixelFromARGB8(ImageLine line, int column, Pngcs.ARGB8<int> argb);
+        public static Pngcs.ARGB8<int> ToARGB8(byte[] buff, int offset, bool alpha);
+        public static Pngcs.ARGB8<int> ToARGB8(int r, int g, int b);
+        public static Pngcs.ARGB8<int> ToARGB8(int[] buff, int offset, bool alpha);
+        public static Pngcs.ARGB8<int> ToARGB8(int r, int g, int b, int a);
+        public static byte[] Unpack(ImageInfo imgInfo, byte[] src, byte[] dst, bool scale);
+        public static int[] Unpack(ImageInfo imgInfo, int[] src, int[] dst, bool scale);
+        public static void WriteDouble(ImageLine line, double d, int pos);
+    }
+
+    public class ImageLines
+    {
+        public int ImageRows { get; }
+        public ImageInfo ImgInfo { get; }
+        public int RowOffset { get; }
+        public int RowStep { get; }
+        public bool SamplesUnpacked { get; }
+        public ImageLine.ESampleType sampleType { get; }
+        public int[][] Scanlines { get; }
+        public byte[][] ScanlinesB { get; }
+        public ImageLines(ImageInfo ImgInfo, ImageLine.ESampleType sampleType, bool unpackedMode, int rowOffset, int imageRows, int rowStep) {}
+        public ImageLine GetImageLineAtMatrixRow(int matrixRow);
+        public int ImageRowToMatrixRow(int imageRow);
+        public int ImageRowToMatrixRowStrict(int imageRow);
+        public int MatrixRowToImageRow(int matrixRow);
+    }
+
+    public class PngHelperInternal
+    {
+        public static System.Text.Encoding charsetLatin1;
+        public static System.Text.Encoding charsetUtf8;
+        public static readonly byte[] PNG_ID_SIGNATURE;
+        public PngHelperInternal() {}
+        public static int DoubleToInt100000(double d);
+        public static int FilterPaethPredictor(int a, int b, int c);
+        public static Zlib.CRC32 GetCRC();
+        public static long GetCrctestVal(PngReader reader);
+        public static void InitCrcForTests(PngReader reader);
+        public static double IntToDouble100000(int i);
+        public static int ReadByte(System.IO.Stream mask0);
+        public static void ReadBytes(System.IO.Stream mask0, byte[] b, int offset, int len);
+        public static int ReadInt1fromByte(byte[] b, int offset);
+        public static int ReadInt2(System.IO.Stream mask0);
+        public static int ReadInt2fromBytes(byte[] b, int offset);
+        public static int ReadInt4(System.IO.Stream mask0);
+        public static int ReadInt4fromBytes(byte[] b, int offset);
+        public static void SkipBytes(System.IO.Stream istream, int len);
+        public static int UnfilterRowPaeth(int r, int a, int b, int c);
+        public static void WriteByte(System.IO.Stream ostream, byte b);
+        public static void WriteBytes(System.IO.Stream ostream, byte[] b);
+        public static void WriteBytes(System.IO.Stream ostream, byte[] b, int offset, int n);
+        public static void WriteInt2(System.IO.Stream ostream, int n);
+        public static void WriteInt2tobytes(int n, byte[] b, int offset);
+        public static void WriteInt4(System.IO.Stream ostream, int n);
+        public static void WriteInt4tobytes(int n, byte[] b, int offset);
+    }
+
+    public class PngReader : System.IDisposable
+    {
+        protected Zlib.Adler32 crctest;
+        protected int currentImageRow;
+        protected readonly string filename;
+        protected ImageLine imgLine;
+        public readonly bool interlaced;
+        protected byte[] rowb;
+        protected byte[] rowbfilter;
+        protected byte[] rowbprev;
+        public Chunks.ChunkLoadBehaviour ChunkLoadBehaviour { get; set; }
+        public int CurrentChunkGroup { get; }
+        public ImageInfo ImgInfo { get; }
+        public long MaxBytesMetadata { get; set; }
+        public long MaxTotalBytesRead { get; set; }
+        public bool ShouldCloseStream { get; set; }
+        public string[] SkipChunkIds { get; set; }
+        public int SkipChunkMaxSize { get; set; }
+        public PngReader(System.IO.Stream inputStream) {}
+        public PngReader(System.IO.Stream inputStream, string filename) {}
+        public void Dispose();
+        public Chunks.ChunksList GetChunksList();
+        public Chunks.PngMetadata GetMetadata();
+        public bool IsInterlaced();
+        public bool IsUnpackedMode();
+        public ImageLine ReadRow(int imageRow);
+        public int[] ReadRow(int[] buffer, int imageRow);
+        public ImageLine ReadRowByte(int imageRow);
+        public byte[] ReadRowByte(byte[] buffer, int imageRow);
+        public ImageLine ReadRowInt(int imageRow);
+        public int[] ReadRowInt(int[] buffer, int imageRow);
+        public ImageLines ReadRowsByte();
+        public ImageLines ReadRowsByte(int rowOffset, int imageRows, int rowStep);
+        public ImageLines ReadRowsInt();
+        public ImageLines ReadRowsInt(int rowOffset, int imageRows, int rowStep);
+        public void ReadSkippingAllRows();
+        public void SetCrcCheckDisabled();
+        public void SetUnpackedMode(bool unPackedMode);
+        public override string ToString();
+    }
+
+    public class PngWriter
+    {
+        protected readonly string filename;
+        public readonly ImageInfo ImgInfo;
+        protected byte[] rowb;
+        protected byte[] rowbfilter;
+        protected byte[] rowbprev;
+        public int CompressionLevel { get; set; }
+        public Zlib.EDeflateCompressStrategy CompressionStrategy { get; set; }
+        public int CurrentChunkGroup { get; }
+        public int IdatMaxSize { get; set; }
+        public bool IsUnpackedMode { get; }
+        public bool ShouldCloseStream { get; set; }
+        public PngWriter(System.IO.Stream outputStream, ImageInfo imgInfo) {}
+        public PngWriter(System.IO.Stream outputStream, ImageInfo imgInfo, string filename) {}
+        public double ComputeCompressionRatio();
+        public void CopyChunksFirst(PngReader reader, int copy_mask);
+        public void CopyChunksLast(PngReader reader, int copy_mask);
+        protected void EncodeRowFromByte(byte[] row);
+        protected void EncodeRowFromInt(int[] row);
+        public void End();
+        public Chunks.ChunksListForWrite GetChunksList();
+        public string GetFilename();
+        public Chunks.PngMetadata GetMetadata();
+        public void SetFilterType(FilterType filterType);
+        public void SetUseUnPackedMode(bool useUnpackedMode);
+        public void WriteRow(int[] newrow);
+        public void WriteRow(ImageLine line, int rownumber);
+        public void WriteRow(int[] newrow, int rown);
+        public void WriteRowByte(byte[] newrow, int rown);
+        public void WriteRowInt(int[] newrow, int rown);
+        public void WriteRowsByte(byte[][] image);
+        public void WriteRowsInt(int[][] image);
+    }
+
+    public static class RGB
+    {
+        public static UnityEngine.Color ToColor(Pngcs.RGB<int> rgb, float denominator);
+    }
+
+    public struct RGB<T> where T : struct, unmanaged, new()
+    {
+        public T B;
+        public T G;
+        public T R;
+        public Pngcs.RGBA<T> RGBA(T A);
+    }
+
+    public static class RGBA
+    {
+        public static UnityEngine.Color ToColor(Pngcs.RGBA<int> rgba, float denominator);
+    }
+
+    public struct RGBA<T> where T : struct, unmanaged, new()
+    {
+        public T A;
+        public T B;
+        public T G;
+        public T R;
+        public Pngcs.RGB<T> RGB { get; }
+    }
+}
+
+namespace Pngcs.Chunks
+{
+    public class ChunkCopyBehaviour
+    {
+        public static readonly int COPY_ALL = 8;
+        public static readonly int COPY_ALL_SAFE = 4;
+        public static readonly int COPY_ALMOSTALL = 256;
+        public static readonly int COPY_NONE = 0;
+        public static readonly int COPY_PALETTE = 1;
+        public static readonly int COPY_PHYS = 16;
+        public static readonly int COPY_TEXTUAL = 32;
+        public static readonly int COPY_TRANSPARENCY = 64;
+        public static readonly int COPY_UNKNOWN = 128;
+        public ChunkCopyBehaviour() {}
+    }
+
+    public class ChunkHelper
+    {
+        public ChunkHelper() {}
+        public static bool Equivalent(PngChunk c1, PngChunk c2);
+        public static System.Collections.Generic.List<PngChunk> FilterList(System.Collections.Generic.List<PngChunk> list, ChunkPredicate predicateKeep);
+        public static bool IsCritical(string id);
+        public static bool IsPublic(string id);
+        public static bool IsSafeToCopy(string id);
+        public static bool IsText(PngChunk c);
+        public static bool IsUnknown(PngChunk chunk);
+        public static int PosNullByte(byte[] bytes);
+        public static bool ShouldLoad(string id, ChunkLoadBehaviour behav);
+        public static byte[] ToBytes(string x);
+        public static byte[] ToBytesUTF8(string x);
+        public static string ToString(byte[] x);
+        public static string ToString(byte[] x, int offset, int len);
+        public static string ToStringUTF8(byte[] x);
+        public static string ToStringUTF8(byte[] x, int offset, int len);
+        public static int TrimList(System.Collections.Generic.List<PngChunk> list, ChunkPredicate predicateRemove);
+        public static void WriteBytesToStream(System.IO.Stream stream, byte[] bytes);
+    }
+
+    public enum ChunkLoadBehaviour
+    {
+        LOAD_CHUNK_ALWAYS = 3,
+        LOAD_CHUNK_IF_SAFE = 2,
+        LOAD_CHUNK_KNOWN = 1,
+        LOAD_CHUNK_NEVER = 0,
+    }
+
+    public interface ChunkPredicate
+    {
+        public bool Matches(PngChunk chunk);
+    }
+
+    public class ChunkRaw
+    {
+        public byte[] Data;
+        public readonly string Id;
+        public readonly byte[] IdBytes;
+        public readonly int Len;
+        public long offset;
+        public override string ToString();
+    }
+
+    public class ChunksList
+    {
+        protected System.Collections.Generic.List<PngChunk> chunks;
+        public void AppendReadChunk(PngChunk chunk, int chunkGroup);
+        public System.Collections.Generic.List<PngChunk> GetById(string id);
+        public System.Collections.Generic.List<PngChunk> GetById(string id, string innerid);
+        public PngChunk GetById1(string id);
+        public PngChunk GetById1(string id, bool failIfMultiple);
+        public PngChunk GetById1(string id, string innerid, bool failIfMultiple);
+        public System.Collections.Generic.List<PngChunk> GetChunks();
+        public System.Collections.Generic.Dictionary<string, int> GetChunksKeys();
+        public System.Collections.Generic.List<PngChunk> GetEquivalent(PngChunk chunk);
+        public override string ToString();
+        public string ToStringFull();
+    }
+
+    public class ChunksListForWrite : ChunksList
+    {
+        public System.Collections.Generic.List<PngChunk> GetQueuedById(string id);
+        public System.Collections.Generic.List<PngChunk> GetQueuedById(string id, string innerid);
+        public PngChunk GetQueuedById1(string id);
+        public PngChunk GetQueuedById1(string id, bool failIfMultiple);
+        public PngChunk GetQueuedById1(string id, string innerid, bool failIfMultiple);
+        public bool Queue(PngChunk chunk);
+        public bool RemoveChunk(PngChunk chunk);
+    }
+
+    public abstract class PngChunk
+    {
+        public readonly bool Crit;
+        public readonly string Id;
+        protected readonly ImageInfo ImgInfo;
+        public readonly bool Pub;
+        public readonly bool Safe;
+        public int ChunkGroup { get; set; }
+        public int Length { get; set; }
+        public long Offset { get; set; }
+        public bool Priority { get; set; }
+        protected PngChunk(string id, ImageInfo imgInfo) {}
+        public abstract bool AllowsMultiple();
+        public static T CloneChunk<T>(T chunk, ImageInfo info) where T : PngChunk;
+        public abstract void CloneDataFromRead(PngChunk other);
+        public ChunkRaw CreateEmptyChunk(int len, bool alloc);
+        public abstract ChunkRaw CreateRawChunk();
+        public static void FactoryRegister(string chunkId, System.Type type);
+        public abstract PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public abstract void ParseFromRaw(ChunkRaw chunk);
+        public override string ToString();
+        public enum ChunkOrderingConstraint
+        {
+            AFTER_PLTE_BEFORE_IDAT = 2,
+            BEFORE_IDAT = 3,
+            BEFORE_PLTE_AND_IDAT = 1,
+            NA = 4,
+            NONE = 0,
+        }
+    }
+
+    public class PngChunkBKGD : PngChunkSingle
+    {
+        public const string ID = @"bKGD";
+        public PngChunkBKGD(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public int GetGray();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public int GetPaletteIndex();
+        public int[] GetRGB();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetGray(int gray);
+        public void SetPaletteIndex(int index);
+        public void SetRGB(int r, int g, int b);
+    }
+
+    public class PngChunkCHRM : PngChunkSingle
+    {
+        public const string ID = @"cHRM";
+        public PngChunkCHRM(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public double[] GetChromaticities();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetChromaticities(double whitex, double whitey, double redx, double redy, double greenx, double greeny, double bluex, double bluey);
+    }
+
+    public class PngChunkGAMA : PngChunkSingle
+    {
+        public const string ID = @"gAMA";
+        public PngChunkGAMA(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public double GetGamma();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetGamma(double gamma);
+    }
+
+    public class PngChunkHIST : PngChunkSingle
+    {
+        public static readonly string ID = @"hIST";
+        public PngChunkHIST(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public int[] GetHist();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetHist(int[] hist);
+    }
+
+    public class PngChunkICCP : PngChunkSingle
+    {
+        public const string ID = @"iCCP";
+        public PngChunkICCP(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public byte[] GetProfile();
+        public string GetProfileAsString();
+        public string GetProfileName();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetProfileNameAndContent(string name, byte[] profile);
+        public void SetProfileNameAndContent(string name, string profile);
+    }
+
+    public class PngChunkIDAT : PngChunkMultiple
+    {
+        public const string ID = @"IDAT";
+        public PngChunkIDAT(ImageInfo i, int len, long offset) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw c);
+    }
+
+    public class PngChunkIEND : PngChunkSingle
+    {
+        public const string ID = @"IEND";
+        public PngChunkIEND(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw c);
+    }
+
+    public class PngChunkIHDR : PngChunkSingle
+    {
+        public const string ID = @"IHDR";
+        public int Bitspc { get; set; }
+        public int Colormodel { get; set; }
+        public int Cols { get; set; }
+        public int Compmeth { get; set; }
+        public int Filmeth { get; set; }
+        public int Interlaced { get; set; }
+        public int Rows { get; set; }
+        public PngChunkIHDR(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+    }
+
+    public class PngChunkITXT : PngChunkTextVar
+    {
+        public const string ID = @"iTXt";
+        public PngChunkITXT(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public string GetLangtag();
+        public string GetTranslatedTag();
+        public bool IsCompressed();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetCompressed(bool compressed);
+        public void SetLangtag(string langtag);
+        public void SetTranslatedTag(string translatedTag);
+    }
+
+    public abstract class PngChunkMultiple : PngChunk
+    {
+        public bool AllowsMultiple();
+    }
+
+    public class PngChunkOFFS : PngChunkSingle
+    {
+        public const string ID = @"oFFs";
+        public PngChunkOFFS(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public long GetPosX();
+        public long GetPosY();
+        public int GetUnits();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetPosX(long posX);
+        public void SetPosY(long posY);
+        public void SetUnits(int units);
+    }
+
+    public class PngChunkPHYS : PngChunkSingle
+    {
+        public const string ID = @"pHYs";
+        public long PixelsxUnitX { get; set; }
+        public long PixelsxUnitY { get; set; }
+        public int Units { get; set; }
+        public PngChunkPHYS(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public double GetAsDpi();
+        public double[] GetAsDpi2();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetAsDpi(double dpi);
+        public void SetAsDpi2(double dpix, double dpiy);
+    }
+
+    public class PngChunkPLTE : PngChunkSingle
+    {
+        public const string ID = @"PLTE";
+        public int NumEntries { get; }
+        public PngChunkPLTE(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public int GetEntry(int n);
+        public Pngcs.RGB<int> GetEntryRgb(int index, int offset);
+        public void GetEntryRgb(int index, int[] rgb, int offset);
+        public int GetNentries();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public int MinBitDepth();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetEntry(int n, int r, int g, int b);
+        public void SetNentries(int numEntries);
+    }
+
+    public class PngChunkSBIT : PngChunkSingle
+    {
+        public const string ID = @"sBIT";
+        public int Alphasb { get; set; }
+        public int Bluesb { get; set; }
+        public int Graysb { get; set; }
+        public int Greensb { get; set; }
+        public int Redsb { get; set; }
+        public PngChunkSBIT(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+    }
+
+    public abstract class PngChunkSingle : PngChunk
+    {
+        public PngChunkSingle(string id, ImageInfo imgInfo) {}
+        public bool AllowsMultiple();
+        public override bool Equals(object obj);
+        public override int GetHashCode();
+    }
+
+    public class PngChunkSPLT : PngChunkMultiple
+    {
+        public const string ID = @"sPLT";
+        public int[] Palette { get; set; }
+        public string PalName { get; set; }
+        public int SampleDepth { get; set; }
+        public PngChunkSPLT(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public int GetNentries();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+    }
+
+    public class PngChunkSRGB : PngChunkSingle
+    {
+        public const string ID = @"sRGB";
+        public const int RENDER_INTENT_Absolute_colorimetric = 3;
+        public const int RENDER_INTENT_Perceptual = 0;
+        public const int RENDER_INTENT_Relative_colorimetric = 1;
+        public const int RENDER_INTENT_Saturation = 2;
+        public int Intent { get; set; }
+        public PngChunkSRGB(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw c);
+    }
+
+    public class PngChunkSTER : PngChunkSingle
+    {
+        public const string ID = @"sTER";
+        public byte Mode { get; set; }
+        public PngChunkSTER(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+    }
+
+    public class PngChunkTEXT : PngChunkTextVar
+    {
+        public const string ID = @"tEXt";
+        public PngChunkTEXT(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override void ParseFromRaw(ChunkRaw c);
+    }
+
+    public abstract class PngChunkTextVar : PngChunkMultiple
+    {
+        protected string key;
+        public const string KEY_Author = @"Author";
+        public const string KEY_Comment = @"Comment";
+        public const string KEY_Copyright = @"Copyright";
+        public const string KEY_Creation_Time = @"Creation Time";
+        public const string KEY_Description = @"Description";
+        public const string KEY_Disclaimer = @"Disclaimer";
+        public const string KEY_Software = @"Software";
+        public const string KEY_Source = @"Source";
+        public const string KEY_Title = @"Title";
+        public const string KEY_Warning = @"Warning";
+        protected string val;
+        protected PngChunkTextVar(string id, ImageInfo info) {}
+        public string GetKey();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public string GetVal();
+        public void SetKeyVal(string key, string val);
+        public class PngTxtInfo
+        {
+            public string author;
+            public string comment;
+            public string creation_time;
+            public string description;
+            public string disclaimer;
+            public string software;
+            public string source;
+            public string title;
+            public string warning;
+            public PngTxtInfo() {}
+        }
+    }
+
+    public class PngChunkTIME : PngChunkSingle
+    {
+        public const string ID = @"tIME";
+        public PngChunkTIME(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public string GetAsString();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public int[] GetYMDHMS();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetNow(int secsAgo);
+    }
+
+    public class PngChunkTRNS : PngChunkSingle
+    {
+        public int Gray;
+        public const string ID = @"tRNS";
+        public int[] PaletteAlpha;
+        public PngChunkTRNS(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void setIndexEntryAsTransparent(int palAlphaIndex);
+        public void SetRGB(Pngcs.RGB<int> rgb);
+        public void SetRGB(int r, int g, int b);
+    }
+
+    public class PngChunkUNKNOWN : PngChunkMultiple
+    {
+        public PngChunkUNKNOWN(string id, ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public byte[] GetData();
+        public override PngChunk.ChunkOrderingConstraint GetOrderingConstraint();
+        public override void ParseFromRaw(ChunkRaw chunk);
+        public void SetData(byte[] data_0);
+    }
+
+    public class PngChunkZTXT : PngChunkTextVar
+    {
+        public const string ID = @"zTXt";
+        public PngChunkZTXT(ImageInfo info) {}
+        public override void CloneDataFromRead(PngChunk other);
+        public override ChunkRaw CreateRawChunk();
+        public override void ParseFromRaw(ChunkRaw c);
+    }
+
+    public class PngMetadata
+    {
+        public PngChunkPLTE CreatePLTEChunk();
+        public PngChunkTRNS CreateTRNSChunk();
+        public double[] GetDpi();
+        public PngChunkPLTE GetPLTE();
+        public PngChunkTIME GetTime();
+        public string GetTimeAsString();
+        public PngChunkTRNS GetTRNS();
+        public string GetTxtForKey(string key);
+        public System.Collections.Generic.List<PngChunkTextVar> GetTxtsForKey(string key);
+        public void QueueChunk(PngChunk chunk);
+        public void QueueChunk(PngChunk chunk, bool lazyOverwrite);
+        public void SetDpi(double dpi);
+        public void SetDpi(double dpix, double dpiy);
+        public PngChunkTextVar SetText(string key, string val);
+        public PngChunkTextVar SetText(string key, string val, bool useLatin1, bool compress);
+        public PngChunkTIME SetTimeNow();
+        public PngChunkTIME SetTimeNow(int nsecs);
+        public PngChunkTIME SetTimeYMDHMS(int year, int mon, int day, int hour, int min, int sec);
+    }
+}
+
+namespace Pngcs.Unity
+{
+    public static class PNG
+    {
+        public static int GetBitDepth(UnityEngine.TextureFormat format);
+        public static System.UInt32 GetBitDepthMaxValue(int bitDepth);
+        public static bool GetIsAlpha(UnityEngine.TextureFormat format);
+        public static bool GetIsGreyscale(UnityEngine.TextureFormat format);
+        public static UnityEngine.TextureFormat GetTextureFormat(int bitDepth, int channels, bool indexed);
+        public static int Index2dto1d(int x, int y, int width);
+        public static int IndexPngToTexture(int row, int col, int numRows, int numCols);
+        public static UnityEngine.Texture2D Read(string filePath);
+        public static System.Threading.Tasks.Task<UnityEngine.Texture2D> ReadAsync(string filePath);
+        public static PNG.ReadColorsResult ReadColors(string filePath);
+        public static System.Threading.Tasks.Task<PNG.ReadColorsResult> ReadColorsAsync(string filePath);
+        public static ImageInfo ReadImageInfo(string filePath);
+        public static int ToInt(float color, int bitDepth);
+        public static Pngcs.RGB<int> ToRGB(UnityEngine.Color color, int bitDepth);
+        public static Pngcs.RGBA<int> ToRGBA(UnityEngine.Color color, int bitDepth);
+        public static void Write(UnityEngine.Texture2D texture, string filePath);
+        public static void Write(UnityEngine.Color[] pixels, int width, int height, int bitDepth, bool alpha, bool greyscale, string filePath);
+        public static System.Threading.Tasks.Task WriteAsync(UnityEngine.Texture2D texture, string filePath);
+        public static System.Threading.Tasks.Task WriteAsync(UnityEngine.Color[] pixels, int width, int height, int bitDepth, bool alpha, bool greyscale, string filePath);
+        public static System.Threading.Tasks.Task WriteGrayscaleAsync(byte[] pixels, int width, int height, bool alpha, string filePath);
+        public static System.Threading.Tasks.Task WriteGrayscaleAsync(System.UInt16[] pixels, int width, int height, bool alpha, string filePath);
+        public static System.Threading.Tasks.Task WriteLargeAsync(UnityEngine.Texture2D texture, string filePath);
+        public static System.Threading.Tasks.Task WriteLargeAsync(UnityEngine.Texture2D texture, string filePath, System.Func<UnityEngine.Texture2D, int[], ImageInfo, int, System.Threading.Tasks.Task> fillLine);
+        public struct ReadColorsResult
+        {
+            public int height;
+            public UnityEngine.Color[] pixels;
+            public UnityEngine.TextureFormat textureFormatInfered;
+            public int width;
+        }
+    }
+}
+
+namespace Pngcs.Zlib
+{
+    public class Adler32
+    {
+        public Adler32() {}
+        public System.UInt32 GetValue();
+        public void Reset();
+        public void Update(byte data);
+        public void Update(byte[] data);
+        public void Update(byte[] data, int offset, int length);
+    }
+
+    public abstract class AZlibInputStream : System.IO.Stream
+    {
+        protected readonly bool leaveOpen;
+        protected readonly System.IO.Stream rawStream;
+        public override bool CanRead { get; }
+        public override bool CanSeek { get; }
+        public override bool CanTimeout { get; }
+        public override bool CanWrite { get; }
+        public override long Length { get; }
+        public override long Position { get; set; }
+        public AZlibInputStream(System.IO.Stream st, bool leaveOpen) {}
+        public abstract string getImplementationId();
+        public override long Seek(long offset, System.IO.SeekOrigin origin);
+        public override void SetLength(long value);
+        public override void Write(byte[] buffer, int offset, int count);
+    }
+
+    public abstract class AZlibOutputStream : System.IO.Stream
+    {
+        protected int compressLevel;
+        protected readonly bool leaveOpen;
+        protected readonly System.IO.Stream rawStream;
+        protected EDeflateCompressStrategy strategy;
+        public override bool CanRead { get; }
+        public override bool CanSeek { get; }
+        public override bool CanTimeout { get; }
+        public override bool CanWrite { get; }
+        public override long Length { get; }
+        public override long Position { get; set; }
+        public AZlibOutputStream(System.IO.Stream st, int compressLevel, EDeflateCompressStrategy strat, bool leaveOpen) {}
+        public abstract string getImplementationId();
+        public override int Read(byte[] buffer, int offset, int count);
+        public override long Seek(long offset, System.IO.SeekOrigin origin);
+        public override void SetLength(long value);
+    }
+
+    public class CRC32
+    {
+        public CRC32() {}
+        public CRC32(System.UInt32 polynomial, System.UInt32 seed) {}
+        public System.UInt32 GetValue();
+        public void Reset();
+        public void Update(byte[] buffer);
+        public void Update(byte[] buffer, int start, int length);
+    }
+
+    public class DeflateCompressLevel
+    {
+        public const int DEFAULT = 6;
+        public const int FASTEST = 3;
+        public const int NO_COMPRESSION = 0;
+        public const int OPTIMAL = 9;
+        public DeflateCompressLevel() {}
+    }
+
+    public enum EDeflateCompressStrategy
+    {
+        Default = 2,
+        Filtered = 0,
+        Huffman = 1,
+    }
+
+    public class ZlibStreamFactory
+    {
+        public ZlibStreamFactory() {}
+        public static AZlibInputStream createZlibInputStream(System.IO.Stream stream);
+        public static AZlibInputStream createZlibInputStream(System.IO.Stream st, bool leaveOpen);
+        public static AZlibOutputStream createZlibOutputStream(System.IO.Stream stream);
+        public static AZlibOutputStream createZlibOutputStream(System.IO.Stream stream, bool leaveOpen);
+        public static AZlibOutputStream createZlibOutputStream(System.IO.Stream stream, int compressLevel, EDeflateCompressStrategy strat, bool leaveOpen);
+    }
+}
